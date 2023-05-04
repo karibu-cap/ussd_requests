@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'models/ussd_single_session_response.dart';
 import 'ussd_requests_method_channel.dart';
 
 abstract class UssdRequestsPlatform extends PlatformInterface {
@@ -25,5 +26,13 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
 
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
+  }
+
+  Future<UssdSingleSessionResponse?> singleSessionUssdRequest({
+    required String ussdCode,
+    required int subscriptionId,
+  }) {
+    throw UnimplementedError(
+        'singleSessionUssdRequest() has not been implemented.');
   }
 }
