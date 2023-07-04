@@ -7,7 +7,8 @@
         <service
             android:name="com.romellfudi.ussdlibrary.USSDServiceKT"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true">
+            android:exported="false"
+            android:showAsAction="never">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
