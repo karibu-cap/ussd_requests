@@ -1,5 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.karibu.ussd_requests">
+    <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+        android:accessibilityEventTypes
+            ="typeWindowStateChanged"
+        android:packageNames="com.android.phone"
+        android:accessibilityFeedbackType="feedbackGeneric"
+        android:accessibilityFlags="flagDefault"
+        android:canRetrieveWindowContent="true"
+        android:description="@string/accessibility_service_description"
+        android:notificationTimeout="0"/>
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
