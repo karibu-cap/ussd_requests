@@ -23,8 +23,30 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }) async {
      try {
       final result = await methodChannel.invokeMethod(
-        'singleSessionUssdRequest',
+        'singleSessionBackgroundUssdRequest',
         {'subscriptionId': subscriptionId, 'ussdCode': ussdCode},
+      );
+
+      return UssdSingleSessionResponse.fromJson(json: Map<String, dynamic>.from(result));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print("Failed to make request : '${e.message}'.");
+      }
+    }
+
+    return null;
+  }
+
+  @override
+  Future<UssdSingleSessionResponse?> multipleSessionBackgroundUssdRequest({
+    required String ussdCode,
+    required int simSlot,
+    required List<String> selectableOption,
+  }) async {
+     try {
+      final result = await methodChannel.invokeMethod(
+        'multipleSessionBackgroundUssdRequest',
+        {'simSlot': simSlot, 'ussdCode': ussdCode, 'selectableOption': selectableOption},
       );
 
       return UssdSingleSessionResponse.fromJson(json: Map<String, dynamic>.from(result));
