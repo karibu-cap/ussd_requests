@@ -10,6 +10,8 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import com.romellfudi.ussdlibrary.USSDApi
+import com.romellfudi.ussdlibrary.USSDController
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
@@ -18,6 +20,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.CompletableFuture
 
+
 /** UssdRequestsPlugin */
 class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   /// The MethodChannel that will the communication between Flutter and native Android
@@ -25,9 +28,16 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
   private var channelName: String = "com.karibu.ussd_requests/plugin_channel"
-  private val makeRequestUssdName = "singleSessionUssdRequest"
+  private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
+  private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private var context: Context? = null
   private var channel: MethodChannel? = null
+  private var ussdApi : USSDApi = USSDController
+  private val map = hashMapOf(
+    "KEY_LOGIN" to listOf("espere", "waiting", "loading", "esperando"),
+    "KEY_ERROR" to listOf("problema", "problem", "error", "null")
+  )
+
 
   val logTag = "karibu.ussd_requests "
 
@@ -42,6 +52,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     channel =
       MethodChannel(messenger, channelName)
     channel!!.setMethodCallHandler(this)
+    this.ussdApi = USSDController
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -51,40 +62,67 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   }
 
 
+
   // The method calls by execution of platform channel.
   override fun onMethodCall(call: MethodCall, result: Result) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O
     ) {
       throw RequestExecutionException("Build.VERSION.SDK_INT invalid version")
     }
-    if (call.method != makeRequestUssdName) {
-      result.notImplemented()
-    }
-    try {
-      val mParams = UssdRequestParams(call)
-      makeRequest(mParams).exceptionally { e: Throwable ->
-        result.error(
-          RequestExecutionException.type,
-          e.message,
+    if (call.method == singleSessionBackgroundUssdRequestName) {
+      try {
+        val mParams = SingleSessionBackgroundUssdRequestParams(call)
+        singleSessionBackgroundUssdRequest(mParams).exceptionally { e: Throwable ->
+          result.error(
+            RequestExecutionException.type,
+            e.message,
+            null
+          )
           null
-        )
-        null
-      }.thenAccept { resultToSend: HashMap<String, String> ->
-        result.success(
-          resultToSend
-        )
+        }.thenAccept { resultToSend: HashMap<String, String> ->
+          result.success(
+            resultToSend
+          )
+        }
+      } catch (e: RequestParamsException) {
+        result.error(RequestParamsException.type, e.message, null)
+      } catch (e: RequestExecutionException) {
+        result.error(RequestParamsException.type, e.message, null)
+      } catch (e: Exception) {
+        result.error("unknown_exception", e.message, null)
       }
-    } catch (e: RequestParamsException) {
-      result.error(RequestParamsException.type, e.message, null)
-    } catch (e: RequestExecutionException) {
-      result.error(RequestParamsException.type, e.message, null)
-    } catch (e: Exception) {
-      result.error("unknown_exception", e.message, null)
+    }
+    if (call.method == multipleSessionBackgroundUssdRequestName) {
+      try {
+        val mParams = MultipleSessionBackgroundUssdRequestParams(call)
+        multipleSessionBackgroundUssdRequest(mParams).exceptionally { e: Throwable ->
+          result.error(
+            RequestExecutionException.type,
+            e.message,
+            null
+          )
+          null
+        }.thenAccept { resultToSend: HashMap<String, String> ->
+          result.success(
+            resultToSend
+          )
+        }
+      } catch (e: RequestParamsException) {
+        result.error(RequestParamsException.type, e.message, null)
+      } catch (e: RequestExecutionException) {
+        result.error(RequestParamsException.type, e.message, null)
+      } catch (e: Exception) {
+        result.error("unknown_exception", e.message, null)
+      }
+    }
+
+    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName) {
+      result.notImplemented()
     }
 
   }
 
-  private fun makeRequest(ussdRequestParams : UssdRequestParams): CompletableFuture<HashMap<String, String>> {
+  private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O
     ) {
       throw RequestExecutionException("Build.VERSION.SDK_INT invalid version")
@@ -129,9 +167,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
               }
             }
           }
-          response.apply {
-            put("errorCode",failureCode.toString())
-          }
 
           completableFuture.complete(response)
         }
@@ -148,8 +183,58 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     return completableFuture
   }
 
+  @RequiresApi(Build.VERSION_CODES.N)
+  private fun multipleSessionBackgroundUssdRequest(ussdRequestParams: MultipleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
+    val completableFuture = CompletableFuture<HashMap<String, String>>()
+    val response = HashMap<String, String>()
+    this.context?.let {
+      val selectableOption = ussdRequestParams.selectableOption
+      executeUssdRequests(it, ussdApi, selectableOption, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, response, completableFuture)
+    }
+    return completableFuture
+  }
 
-  private class UssdRequestParams(call: MethodCall) {
+  @RequiresApi(Build.VERSION_CODES.N)
+  private fun executeUssdRequests(
+    context: Context,
+    ussdApi: USSDApi,
+    selectableOption: List<String>,
+    ussdCode: String,
+    simSlot: Int,
+    response: HashMap<String, String>,
+    completableFuture: CompletableFuture<HashMap<String, String>>,
+    currentIndex: Int = 0
+  ) {
+    if (currentIndex < selectableOption.size) {
+      val option = selectableOption[currentIndex]
+      ussdApi.callUSSDOverlayInvoke(context, ussdCode, simSlot, map, object : USSDController.CallbackInvoke {
+        override fun responseInvoke(message: String) {
+          // Handle the USSD response message
+          ussdApi.send(option) { responseMessage ->
+            // Handle the response message from the selected option
+            if (currentIndex == selectableOption.size - 1) {
+              // Last USSD request, complete the CompletableFuture
+              response["responseReceived"] = responseMessage
+              completableFuture.complete(response)
+            } else {
+              // Execute the next USSD request recursively
+              executeUssdRequests(context, ussdApi, selectableOption, ussdCode, simSlot, response, completableFuture, currentIndex + 1)
+            }
+          }
+        }
+
+        override fun over(message: String) {
+          // Handle the USSD response message
+          response["responseReceived"] = message
+          completableFuture.complete(response)
+        }
+      })
+    }
+  }
+
+
+
+  private class SingleSessionBackgroundUssdRequestParams(call: MethodCall) {
     var subscriptionId: Int
     var ussdCode: String?
 
@@ -169,6 +254,32 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         throw RequestParamsException("Incorrect parameter type: `ussdCode` must be a String")
       }
       if (ussdCode!!.isEmpty()) {
+        throw RequestParamsException(
+          "Incorrect parameter value: `code` must not be an empty string"
+        )
+      }
+    }
+  }
+
+
+  private class MultipleSessionBackgroundUssdRequestParams(call: MethodCall) {
+    var selectableOption: List<String>
+    var ussdCode: String
+    var simSlot: Int
+
+    init {
+      simSlot = call.argument<Int>("simSlot")
+        ?: throw RequestParamsException(
+          "Incorrect parameter type: `slotSim` must be an Int"
+        )
+      selectableOption = call.argument<List<String>>("selectableOption")
+        ?: throw RequestParamsException(
+          "Incorrect parameter type: `selectableOption` must be a list of string"
+        )
+      ussdCode = call.argument<String>("ussdCode")?:
+        throw RequestParamsException("Incorrect parameter type: `ussdCode` must be a String")
+
+      if (ussdCode.isEmpty()) {
         throw RequestParamsException(
           "Incorrect parameter value: `code` must not be an empty string"
         )
