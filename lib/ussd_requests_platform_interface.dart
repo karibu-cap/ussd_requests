@@ -35,4 +35,13 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
     throw UnimplementedError(
         'singleSessionUssdRequest() has not been implemented.');
   }
+
+  Future<UssdSingleSessionResponse?> multipleSessionBackgroundUssdRequest({
+    required String ussdCode,
+    required int simSlot,
+    required List<String> selectableOption,
+  }) {
+    throw UnimplementedError(
+        'multipleSessionBackgroundUssdRequest() has not been implemented.');
+  }
 }

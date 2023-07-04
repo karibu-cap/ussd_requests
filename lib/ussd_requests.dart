@@ -13,4 +13,17 @@ class UssdRequests {
     return await UssdRequestsPlatform.instance.singleSessionUssdRequest(
         subscriptionId: subscriptionId, ussdCode: ussdCode);
   }
+
+  static Future<UssdSingleSessionResponse?>
+      multipleSessionBackgroundUssdRequest({
+    required String ussdCode,
+    required int simSlot,
+    required List<String> selectableOption,
+  }) async {
+    return await UssdRequestsPlatform.instance
+        .multipleSessionBackgroundUssdRequest(
+            selectableOption: selectableOption,
+            simSlot: simSlot,
+            ussdCode: ussdCode);
+  }
 }
