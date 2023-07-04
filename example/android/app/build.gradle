@@ -69,5 +69,4 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "com.github.romellfudi.VoIpUSSD:kotlin-ussd-library:1.4.a"
 }
