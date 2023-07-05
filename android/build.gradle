@@ -1,4 +1,4 @@
-group 'com.example.ussd_requests'
+group 'com.karibu_cap.ussd_requests'
 version '1.0-SNAPSHOT'
 
 buildscript {

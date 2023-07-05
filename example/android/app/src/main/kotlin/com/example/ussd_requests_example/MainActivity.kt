@@ -1,4 +1,4 @@
-package com.example.ussd_requests_example
+package com.karibu_cap.ussd_requests
 
 import io.flutter.embedding.android.FlutterActivity
 
