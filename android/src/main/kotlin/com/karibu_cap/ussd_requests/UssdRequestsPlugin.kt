@@ -12,8 +12,6 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.romellfudi.ussdlibrary.USSDApi
-import com.romellfudi.ussdlibrary.USSDController
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
