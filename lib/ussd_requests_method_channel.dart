@@ -8,7 +8,7 @@ import 'ussd_requests_platform_interface.dart';
 class MethodChannelUssdRequests extends UssdRequestsPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
-  final methodChannel = const MethodChannel('com.karibu.ussd_requests/plugin_channel');
+  final methodChannel = const MethodChannel('com.karibu_cap.ussd_requests/plugin_channel');
 
   @override
   Future<String?> getPlatformVersion() async {
