@@ -60,7 +60,7 @@ android {
             signingConfig signingConfigs.debug
         }
     }
-    namespace 'com.karibu.ussd_requests'
+    namespace 'com.karibu_cap.ussd_requests'
 }
 
 flutter {

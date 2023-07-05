@@ -1,6 +1,7 @@
-package com.example.ussd_requests
+package com.karibu_cap.ussd_requests
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -9,6 +10,7 @@ import android.os.Looper
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.romellfudi.ussdlibrary.USSDApi
 import com.romellfudi.ussdlibrary.USSDController
@@ -27,7 +29,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
-  private var channelName: String = "com.karibu.ussd_requests/plugin_channel"
+  private var channelName: String = "com.karibu_cap.ussd_requests/plugin_channel"
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private var context: Context? = null
@@ -185,17 +187,57 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
 
   @RequiresApi(Build.VERSION_CODES.N)
   private fun multipleSessionBackgroundUssdRequest(ussdRequestParams: MultipleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
+
+    // check permissions
+    if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+      if (!ActivityCompat.shouldShowRequestPermissionRationale(context!! as Activity, Manifest.permission.CALL_PHONE)) {
+        ActivityCompat.requestPermissions(context!! as Activity, arrayOf(Manifest.permission.CALL_PHONE), 2)
+      }
+    }else if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+      if (!ActivityCompat.shouldShowRequestPermissionRationale(context!! as Activity, Manifest.permission.READ_PHONE_STATE)) {
+        ActivityCompat.requestPermissions(context!! as Activity, arrayOf(Manifest.permission.READ_PHONE_STATE), 2)
+      }
+    }
+
     val completableFuture = CompletableFuture<HashMap<String, String>>()
     val response = HashMap<String, String>()
-    this.context?.let {
+    val currentIndex: Int = 0
+    context?.let {
       val selectableOption = ussdRequestParams.selectableOption
-      executeUssdRequests(it, ussdApi, selectableOption, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, response, completableFuture)
+      if (currentIndex < selectableOption.size) {
+        Log.d("vvvvvvvvvvvvvv 1", selectableOption.size.toString())
+        ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, map, object : USSDController.CallbackInvoke {
+          override fun responseInvoke(message: String) {
+            Log.d("vvvvvvvvvvv jjj", message)
+            // Handle the USSD response message
+            ussdApi.send(selectableOption[currentIndex] ) { responseMessage ->
+              // Handle the response message from the selected option
+              Log.d("vvvvvvvvvvv 2", responseMessage)
+              if (currentIndex == selectableOption.size - 1) {
+                // Last USSD request, complete the CompletableFuture
+                response["responseReceived"] = responseMessage
+                completableFuture.complete(response)
+              } else {
+                // Execute the next USSD request recursively
+                sendData(it, ussdApi, selectableOption, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, response, completableFuture, currentIndex + 1)
+              }
+            }
+          }
+
+          override fun over(message: String) {
+            // Handle the USSD response message
+            response["responseReceived"] = message
+            completableFuture.complete(response)
+          }
+        })
+
+      }
     }
     return completableFuture
   }
 
   @RequiresApi(Build.VERSION_CODES.N)
-  private fun executeUssdRequests(
+  private fun sendData(
     context: Context,
     ussdApi: USSDApi,
     selectableOption: List<String>,
@@ -203,32 +245,20 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     simSlot: Int,
     response: HashMap<String, String>,
     completableFuture: CompletableFuture<HashMap<String, String>>,
-    currentIndex: Int = 0
+    currentIndex: Int
   ) {
-    if (currentIndex < selectableOption.size) {
-      val option = selectableOption[currentIndex]
-      ussdApi.callUSSDOverlayInvoke(context, ussdCode, simSlot, map, object : USSDController.CallbackInvoke {
-        override fun responseInvoke(message: String) {
-          // Handle the USSD response message
-          ussdApi.send(option) { responseMessage ->
-            // Handle the response message from the selected option
-            if (currentIndex == selectableOption.size - 1) {
-              // Last USSD request, complete the CompletableFuture
-              response["responseReceived"] = responseMessage
-              completableFuture.complete(response)
-            } else {
-              // Execute the next USSD request recursively
-              executeUssdRequests(context, ussdApi, selectableOption, ussdCode, simSlot, response, completableFuture, currentIndex + 1)
-            }
-          }
-        }
 
-        override fun over(message: String) {
-          // Handle the USSD response message
-          response["responseReceived"] = message
-          completableFuture.complete(response)
-        }
-      })
+    ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
+      // Handle the response message from the selected option
+      Log.d("vvvvvvvvvvv 2", responseMessage)
+      if (currentIndex == selectableOption.size - 1) {
+        // Last USSD request, complete the CompletableFuture
+        response["responseReceived"] = responseMessage
+        completableFuture.complete(response)
+      } else {
+        // Execute the next USSD request recursively
+        sendData(context, ussdApi, selectableOption, ussdCode, simSlot, response, completableFuture, currentIndex + 1)
+      }
     }
   }
 

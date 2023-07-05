@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.karibu.ussd_requests">
+    package="com.karibu_cap.ussd_requests">
    <application
         android:label="ussd_requests_example"
         android:name="${applicationName}"
