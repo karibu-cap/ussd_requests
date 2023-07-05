@@ -286,16 +286,9 @@ object USSDController : USSDInterface, USSDApi {
         else -> activity.getString(activity.applicationInfo.labelRes)
     }
 
-    private fun openSettingsAccessibility(activity: Activity) =
-        with(AlertDialog.Builder(activity)) {
-            setTitle("USSD Accessibility permission")
-            setMessage("You must enable accessibility permissions for the app %s".format(getNameApp(activity)))
-            setCancelable(true)
-            setNeutralButton("ok") { _, _ ->
-                activity.startActivityForResult(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), 1)
-            }
-            create().show()
-        }
+    private fun openSettingsAccessibility(activity: Activity) {
+        activity.startActivityForResult(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), 1)
+    }
 
     private fun isAccessibilityServicesEnable(context: Context): Boolean {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
