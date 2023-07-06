@@ -8,11 +8,13 @@ import 'ussd_requests_platform_interface.dart';
 class MethodChannelUssdRequests extends UssdRequestsPlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
-  final methodChannel = const MethodChannel('com.karibu_cap.ussd_requests/plugin_channel');
+  final methodChannel =
+      const MethodChannel('com.karibu_cap.ussd_requests/plugin_channel');
 
   @override
   Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
+    final version =
+        await methodChannel.invokeMethod<String>('getPlatformVersion');
     return version;
   }
 
@@ -21,13 +23,14 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
     required String ussdCode,
     required int subscriptionId,
   }) async {
-     try {
+    try {
       final result = await methodChannel.invokeMethod(
         'singleSessionBackgroundUssdRequest',
         {'subscriptionId': subscriptionId, 'ussdCode': ussdCode},
       );
 
-      return UssdSingleSessionResponse.fromJson(json: Map<String, dynamic>.from(result));
+      return UssdSingleSessionResponse.fromJson(
+          json: Map<String, dynamic>.from(result));
     } on PlatformException catch (e) {
       if (kDebugMode) {
         print("Failed to make request : '${e.message}'.");
@@ -38,18 +41,24 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }
 
   @override
-  Future<UssdSingleSessionResponse?> multipleSessionBackgroundUssdRequest({
+  Future<String?> multipleSessionBackgroundUssdRequest({
     required String ussdCode,
     required int simSlot,
-    required List<String> selectableOption,
+    List<String>? selectableOption,
+    bool? cancelAtTheEnd = true,
   }) async {
-     try {
+    try {
       final result = await methodChannel.invokeMethod(
         'multipleSessionBackgroundUssdRequest',
-        {'simSlot': simSlot, 'ussdCode': ussdCode, 'selectableOption': selectableOption},
+        {
+          'simSlot': simSlot,
+          'ussdCode': ussdCode,
+          'selectableOption': selectableOption,
+          'cancelAtTheEnd': cancelAtTheEnd
+        },
       );
 
-      return UssdSingleSessionResponse.fromJson(json: Map<String, dynamic>.from(result));
+      return result;
     } on PlatformException catch (e) {
       if (kDebugMode) {
         print("Failed to make request : '${e.message}'.");
