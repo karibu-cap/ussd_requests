@@ -102,7 +102,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
             null
           )
           null
-        }.thenAccept { resultToSend: HashMap<String, String> ->
+        }.thenAccept { resultToSend: String ->
           result.success(
             resultToSend
           )
@@ -184,7 +184,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   @RequiresApi(Build.VERSION_CODES.N)
-  private fun multipleSessionBackgroundUssdRequest(ussdRequestParams: MultipleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
+  private fun multipleSessionBackgroundUssdRequest(ussdRequestParams: MultipleSessionBackgroundUssdRequestParams): CompletableFuture<String> {
 
     // check permissions
     if (ContextCompat.checkSelfPermission(context!!, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
@@ -197,39 +197,52 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
       }
     }
 
-    val completableFuture = CompletableFuture<HashMap<String, String>>()
+    val completableFuture = CompletableFuture<String>()
     val response = HashMap<String, String>()
-    val currentIndex: Int = 0
+    val currentIndex = 0
     context?.let {
       val selectableOption = ussdRequestParams.selectableOption
-      if (currentIndex < selectableOption.size) {
-        Log.d("vvvvvvvvvvvvvv 1", selectableOption.size.toString())
+
         ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
-            Log.d("vvvvvvvvvvv jjj", message)
             // Handle the USSD response message
-            ussdApi.send(selectableOption[currentIndex] ) { responseMessage ->
-              // Handle the response message from the selected option
-              Log.d("vvvvvvvvvvv 2", responseMessage)
-              if (currentIndex == selectableOption.size - 1) {
-                // Last USSD request, complete the CompletableFuture
-                response["responseReceived"] = responseMessage
-                completableFuture.complete(response)
-              } else {
-                // Execute the next USSD request recursively
-                sendData(it, ussdApi, selectableOption, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, response, completableFuture, currentIndex + 1)
+            if (selectableOption != null && selectableOption.isNotEmpty()) {
+              ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
+                // Handle the response message from the selected option
+                if (currentIndex == selectableOption.size - 1) {
+                  // Last USSD request, complete the CompletableFuture
+                  completableFuture.complete(responseMessage)
+                  if(ussdRequestParams.cancelAtTheEnd){
+                    ussdApi.cancel()
+                  }
+                } else {
+                  // Execute the next USSD request recursively
+                  sendData(
+                    it,
+                    ussdApi,
+                    selectableOption,
+                    ussdRequestParams.ussdCode,
+                    ussdRequestParams.simSlot,
+                    response,
+                    completableFuture,
+                    currentIndex + 1,
+                    ussdRequestParams.cancelAtTheEnd
+                  )
+                }
               }
             }
           }
 
           override fun over(message: String) {
             // Handle the USSD response message
-            response["responseReceived"] = message
-            completableFuture.complete(response)
+            completableFuture.complete(message)
+            if(ussdRequestParams.cancelAtTheEnd){
+              ussdApi.cancel()
+            }
           }
         })
 
-      }
+
     }
     return completableFuture
   }
@@ -242,20 +255,22 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     ussdCode: String,
     simSlot: Int,
     response: HashMap<String, String>,
-    completableFuture: CompletableFuture<HashMap<String, String>>,
-    currentIndex: Int
+    completableFuture: CompletableFuture<String>,
+    currentIndex: Int,
+    cancelAtTheEnd: Boolean
   ) {
 
     ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
       // Handle the response message from the selected option
-      Log.d("vvvvvvvvvvv 2", responseMessage)
       if (currentIndex == selectableOption.size - 1) {
         // Last USSD request, complete the CompletableFuture
-        response["responseReceived"] = responseMessage
-        completableFuture.complete(response)
+        completableFuture.complete(responseMessage)
+        if(cancelAtTheEnd){
+          ussdApi.cancel()
+        }
       } else {
         // Execute the next USSD request recursively
-        sendData(context, ussdApi, selectableOption, ussdCode, simSlot, response, completableFuture, currentIndex + 1)
+        sendData(context, ussdApi, selectableOption, ussdCode, simSlot, response, completableFuture, currentIndex + 1, cancelAtTheEnd)
       }
     }
   }
@@ -291,22 +306,23 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
 
 
   private class MultipleSessionBackgroundUssdRequestParams(call: MethodCall) {
-    var selectableOption: List<String>
+    var selectableOption: List<String>?
     var ussdCode: String
     var simSlot: Int
+    var cancelAtTheEnd: Boolean
 
     init {
       simSlot = call.argument<Int>("simSlot")
         ?: throw RequestParamsException(
           "Incorrect parameter type: `slotSim` must be an Int"
         )
-      selectableOption = call.argument<List<String>>("selectableOption")
+      cancelAtTheEnd = call.argument<Boolean>("cancelAtTheEnd")
         ?: throw RequestParamsException(
-          "Incorrect parameter type: `selectableOption` must be a list of string"
+          "Incorrect parameter type: `cancelAtTheEnd` must be a boolean"
         )
+      selectableOption = call.argument<List<String>?>("selectableOption")
       ussdCode = call.argument<String>("ussdCode")?:
         throw RequestParamsException("Incorrect parameter type: `ussdCode` must be a String")
-
       if (ussdCode.isEmpty()) {
         throw RequestParamsException(
           "Incorrect parameter value: `code` must not be an empty string"

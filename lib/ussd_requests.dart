@@ -14,15 +14,16 @@ class UssdRequests {
         subscriptionId: subscriptionId, ussdCode: ussdCode);
   }
 
-  static Future<UssdSingleSessionResponse?>
-      multipleSessionBackgroundUssdRequest({
+  static Future<String?> multipleSessionBackgroundUssdRequest({
     required String ussdCode,
     required int simSlot,
-    required List<String> selectableOption,
+    List<String>? selectableOption,
+    bool? cancelAtTheEnd = true,
   }) async {
     return await UssdRequestsPlatform.instance
         .multipleSessionBackgroundUssdRequest(
             selectableOption: selectableOption,
+            cancelAtTheEnd: cancelAtTheEnd,
             simSlot: simSlot,
             ussdCode: ussdCode);
   }
