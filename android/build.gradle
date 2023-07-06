@@ -1,4 +1,4 @@
-group 'com.example.ussd_requests'
+group 'com.karibu_cap.ussd_requests'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -18,7 +18,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -44,8 +43,4 @@ android {
     defaultConfig {
         minSdkVersion 16
     }
-}
-
-dependencies {
-    implementation "com.github.romellfudi.VoIpUSSD:kotlin-ussd-library:1.4.a"
 }

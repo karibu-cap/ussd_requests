@@ -1,18 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.karibu.ussd_requests">
+  package="com.karibu_cap.ussd_requests">
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.Manifest.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <application>
-        <service
-            android:name="com.romellfudi.ussdlibrary.USSDServiceKT"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"/>
-        </service>
-    </application>
-
+    <uses-permission android:name="android.Manifest.permission.READ_PHONE_STATE" />
 </manifest>
