@@ -203,7 +203,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     context?.let {
       val selectableOption = ussdRequestParams.selectableOption
 
-        ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, map, object : USSDController.CallbackInvoke {
+        ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
             // Handle the USSD response message
             if (selectableOption != null && selectableOption.isNotEmpty()) {
