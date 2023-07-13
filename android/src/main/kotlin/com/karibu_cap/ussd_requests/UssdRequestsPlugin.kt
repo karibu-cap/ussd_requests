@@ -129,7 +129,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     if (call.method == isAccessibilityServicesEnableStreamRequestName) {
       try {
           result.success(
-            this.ussdApi.isAccessibilityServicesEnableStream(context!!)
+            this.ussdApi.isAccessibilityServicesEnable(context!!)
           )
       } catch (e: Exception) {
         result.error(RequestParamsException.type, e.message, null)
