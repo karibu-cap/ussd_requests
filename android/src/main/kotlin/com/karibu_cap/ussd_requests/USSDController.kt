@@ -21,6 +21,8 @@ import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
+import androidx.annotation.RequiresApi
+import java.util.stream.Stream
 
 /**
  * @author Romell Dominguez
@@ -68,6 +70,7 @@ object USSDController : USSDInterface, USSDApi {
      * @param hashMap             Map of Login and problem messages
      * @param callbackInvoke  a listener object as to return answer
      */
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun callUSSDInvoke(context: Context, ussdPhoneNumber: String, hashMap: HashMap<String, List<String>>,
                                 callbackInvoke: CallbackInvoke) {
         this.context = context
@@ -82,6 +85,7 @@ object USSDController : USSDInterface, USSDApi {
      * @param hashMap         Map of Login and problem messages
      * @param callbackInvoke  a listener object as to return answer
      */
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun callUSSDOverlayInvoke(baseContext: Context, ussdPhoneNumber: String, hashMap: HashMap<String, List<String>>,
                                        callbackInvoke: CallbackInvoke) {
         context = baseContext        
@@ -109,7 +113,7 @@ object USSDController : USSDInterface, USSDApi {
      * @param hashMap         Map of Login and problem messages
      * @param callback        a listener object as to return answer
      */
-    @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun callUSSDInvoke(baseContext: Context, ussdPhoneNumber: String, simSlot: Int,
                                 hashMap: HashMap<String, List<String>>, callback: CallbackInvoke) {
 		sendType = false
@@ -145,7 +149,7 @@ object USSDController : USSDInterface, USSDApi {
      * @param hashMap         Map of Login and problem messages
      * @param callback        a listener object as to return answer
      */
-    @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun callUSSDOverlayInvoke(baseContext: Context, ussdPhoneNumber: String, simSlot: Int,
                                        hashMap: HashMap<String, List<String>>, callback: CallbackInvoke) {		
         sendType = false
@@ -157,6 +161,7 @@ object USSDController : USSDInterface, USSDApi {
         else callbackInvoke.over("Check your accessibility | overlay permission")
     }
 
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun dialUp(ussdPhoneNumber: String, simSlot: Int) {
         when {
             !map.containsKey(KEY_LOGIN) || !map.containsKey(KEY_ERROR) ->
@@ -179,15 +184,15 @@ object USSDController : USSDInterface, USSDApi {
      * @param uri     parsed uri to call
      * @param simSlot simSlot number to use
      */
-    @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.M)
     private fun getActionCallIntent(uri: Uri?, simSlot: Int): Intent {
-        val telcomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
+        val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
         return Intent(Intent.ACTION_CALL, uri).apply {
             simSlotName.map { sim -> putExtra(sim, simSlot) }
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
             putExtra("com.android.phone.force.slot", true)
             putExtra("Cdma_Supp", true)
-            telcomManager?.callCapablePhoneAccounts?.let { handles ->
+            telecomManager?.callCapablePhoneAccounts?.let { handles ->
                 if (handles.size > simSlot)
                     putExtra("android.telecom.extra.PHONE_ACCOUNT_HANDLE", handles[simSlot])
             }
@@ -286,11 +291,11 @@ object USSDController : USSDInterface, USSDApi {
         else -> activity.getString(activity.applicationInfo.labelRes)
     }
 
-    private fun openSettingsAccessibility(activity: Activity) {
+     private fun openSettingsAccessibility(activity: Activity) {
         activity.startActivityForResult(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), 1)
     }
 
-    private fun isAccessibilityServicesEnable(context: Context): Boolean {
+    override fun isAccessibilityServicesEnable(context: Context): Boolean {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
         accessibilityManager?.apply {
             installedAccessibilityServiceList.forEach { service ->
@@ -311,5 +316,32 @@ object USSDController : USSDInterface, USSDApi {
         }
         Log.d("Accessibility", "Accessibility service is not enabled for the app")
         return false
+    }
+    @RequiresApi(Build.VERSION_CODES.N)
+    override   fun isAccessibilityServicesEnableStream(context: Context): Stream<Boolean> {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        val streamBuilder = Stream.builder<Boolean>()
+
+        accessibilityManager?.apply {
+            installedAccessibilityServiceList.forEach { service ->
+                if (service.id.contains(context.packageName) &&
+                    Settings.Secure.getInt(context.applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED) == 1) {
+                    val enabledServices = Settings.Secure.getString(context.applicationContext.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                    if (enabledServices != null) {
+                        val enabledServicesList = enabledServices.split(':')
+                        if (enabledServicesList.contains(service.id)) {
+                            Log.d("Accessibility", "Accessibility service ${service.id} is enabled for the app")
+                            streamBuilder.add(true)
+                        } else {
+                            Log.d("Accessibility", "Accessibility service: ${service.id} is disabled for the app")
+                            streamBuilder.add(false)
+                        }
+                    }
+                }
+            }
+        }
+
+        streamBuilder.add(false) // Accessibility service is not enabled for the app
+        return streamBuilder.build()
     }
 }

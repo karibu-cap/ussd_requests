@@ -12,6 +12,7 @@ package com.karibu_cap.ussd_requests
 
 import android.content.Context
 import java.util.*
+import java.util.stream.Stream
 
 /**
  *
@@ -39,4 +40,6 @@ interface USSDApi {
                               callbackInvoke: USSDController.CallbackInvoke)
     fun verifyAccessibilityAccess(context: Context): Boolean
     fun verifyOverLay(context: Context): Boolean
+    fun isAccessibilityServicesEnable(context: Context): Boolean
+    fun isAccessibilityServicesEnableStream(context: Context): Stream<Boolean>
 }
