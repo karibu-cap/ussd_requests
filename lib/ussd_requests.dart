@@ -28,9 +28,8 @@ class UssdRequests {
             ussdCode: ussdCode);
   }
 
-  static Future<Stream<bool>> isAccessibilityServicesEnableStream() async {
-    return await UssdRequestsPlatform.instance
-        .isAccessibilityServicesEnableStream();
+  static Stream<bool> isAccessibilityServicesEnableStream() {
+    return UssdRequestsPlatform.instance.isAccessibilityServicesEnableStream();
   }
 
   static Future<bool> isAccessibilityServicesEnable() async {

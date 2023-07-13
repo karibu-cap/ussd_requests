@@ -69,16 +69,16 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }
 
   @override
-  Future<Stream<bool>> isAccessibilityServicesEnableStream() async {
+  Stream<bool> isAccessibilityServicesEnableStream() {
     try {
-      final stream = await methodChannel
-          .invokeMethod('isAccessibilityServicesEnableStreamRequest');
-      return stream.cast<bool>();
+      final Stream<bool> stream =  methodChannel
+          .invokeMethod('isAccessibilityServicesEnableStreamRequest') as Stream<bool>;
+      return stream;
     } on PlatformException catch (e) {
       if (kDebugMode) {
         print('Failed to invoke Kotlin method: ${e.message}');
       }
-      return const Stream.empty();
+      return Stream.value(false);
     }
   }
 
