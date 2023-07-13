@@ -27,4 +27,13 @@ class UssdRequests {
             simSlot: simSlot,
             ussdCode: ussdCode);
   }
+
+  static Future<Stream<bool>> isAccessibilityServicesEnableStream() async {
+    return await UssdRequestsPlatform.instance
+        .isAccessibilityServicesEnableStream();
+  }
+
+  static Future<bool> isAccessibilityServicesEnable() async {
+    return await UssdRequestsPlatform.instance.isAccessibilityServicesEnable();
+  }
 }

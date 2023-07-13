@@ -45,4 +45,12 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
     throw UnimplementedError(
         'multipleSessionBackgroundUssdRequest() has not been implemented.');
   }
+
+  Future<Stream<bool>> isAccessibilityServicesEnableStream() async {
+    return const Stream.empty();
+  }
+
+  Future<bool> isAccessibilityServicesEnable() async {
+    return false;
+  }
 }
