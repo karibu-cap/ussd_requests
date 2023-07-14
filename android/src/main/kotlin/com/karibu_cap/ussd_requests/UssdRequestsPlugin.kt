@@ -30,6 +30,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   private var channelName: String = "com.karibu_cap.ussd_requests/plugin_channel"
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
+  private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
+  private val isAccessibilityServicesEnableStreamRequestName = "isAccessibilityServicesEnableStreamRequest"
   private var context: Context? = null
   private var channel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
@@ -115,11 +117,27 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         result.error("unknown_exception", e.message, null)
       }
     }
-
-    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName) {
+    if (call.method == isAccessibilityServicesEnableRequestName) {
+      try {
+          result.success(
+            this.ussdApi.isAccessibilityServicesEnable(context!!)
+          )
+      } catch (e: Exception) {
+        result.error(RequestParamsException.type, e.message, null)
+      }
+    }
+    if (call.method == isAccessibilityServicesEnableStreamRequestName) {
+      try {
+          result.success(
+            this.ussdApi.isAccessibilityServicesEnable(context!!)
+          )
+      } catch (e: Exception) {
+        result.error(RequestParamsException.type, e.message, null)
+      }
+    }
+    else  {
       result.notImplemented()
     }
-
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
@@ -203,7 +221,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     context?.let {
       val selectableOption = ussdRequestParams.selectableOption
 
-        ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
+        this.ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
             // Handle the USSD response message
             if (selectableOption != null && selectableOption.isNotEmpty()) {
