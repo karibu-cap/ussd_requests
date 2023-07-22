@@ -211,7 +211,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     val currentIndex = 0
     context?.let {
       val selectableOption = ussdRequestParams.selectableOption
-        this.ussdApi.cancel()
         this.ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
             // Handle the USSD response message
