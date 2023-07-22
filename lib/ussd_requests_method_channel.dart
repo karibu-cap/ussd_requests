@@ -10,6 +10,8 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   @visibleForTesting
   final methodChannel =
       const MethodChannel('com.karibu_cap.ussd_requests/plugin_channel');
+  final eventChannel =
+      const EventChannel('com.karibu_cap.ussd_requests/eventChannel');
 
   @override
   Future<String?> getPlatformVersion() async {
@@ -66,20 +68,6 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
     }
 
     return null;
-  }
-
-  @override
-  Stream<bool> isAccessibilityServicesEnableStream() {
-    try {
-      final Stream<bool> stream =  methodChannel
-          .invokeMethod('isAccessibilityServicesEnableStreamRequest') as Stream<bool>;
-      return stream;
-    } on PlatformException catch (e) {
-      if (kDebugMode) {
-        print('Failed to invoke Kotlin method: ${e.message}');
-      }
-      return Stream.value(false);
-    }
   }
 
   @override
