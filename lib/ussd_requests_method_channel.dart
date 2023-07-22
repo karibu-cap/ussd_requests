@@ -10,8 +10,6 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   @visibleForTesting
   final methodChannel =
       const MethodChannel('com.karibu_cap.ussd_requests/plugin_channel');
-  final eventChannel =
-      const EventChannel('com.karibu_cap.ussd_requests/eventChannel');
 
   @override
   Future<String?> getPlatformVersion() async {
