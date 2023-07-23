@@ -216,8 +216,10 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
             if (selectableOption != null && selectableOption.isNotEmpty()) {
               ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
                 // Handle the response message from the selected option
-                if (currentIndex == selectableOption.size) {
+                if (currentIndex == selectableOption.size - 1) {
                   // Last USSD request, complete the CompletableFuture
+
+                  Log.i(logTag, "ussdApi lenght 1: $message")
                   completableFuture.complete(responseMessage)
                   if(ussdRequestParams.cancelAtTheEnd){
                     ussdApi.cancel()
@@ -239,13 +241,17 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
               }
             }else {
               completableFuture.complete(message)
-              ussdApi.cancel()
+              Log.i(logTag, "ussdApi not lenght: $message")
+              if(ussdRequestParams.cancelAtTheEnd){
+                ussdApi.cancel()
+              }
             }
           }
 
           override fun over(message: String) {
             // Handle the USSD response message
             completableFuture.complete(message)
+            Log.i(logTag, "ussdApi over: $message")
             if(ussdRequestParams.cancelAtTheEnd){
               ussdApi.cancel()
             }
@@ -272,9 +278,10 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
 
     ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
       // Handle the response message from the selected option
-      if (currentIndex == selectableOption.size) {
+      if (currentIndex == selectableOption.size - 1) {
         // Last USSD request, complete the CompletableFuture
         completableFuture.complete(responseMessage)
+        Log.i(logTag, "ussdApi: $responseMessage")
         if(cancelAtTheEnd){
           ussdApi.cancel()
         }
