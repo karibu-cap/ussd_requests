@@ -31,7 +31,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
-  private val isAccessibilityServicesEnableStreamRequestName = "isAccessibilityServicesEnableStreamRequest"
   private var context: Context? = null
   private var channel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
@@ -209,8 +208,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     val completableFuture = CompletableFuture<String>()
     val response = HashMap<String, String>()
     val currentIndex = 0
+    val selectableOption = ussdRequestParams.selectableOption
     context?.let {
-      val selectableOption = ussdRequestParams.selectableOption
         this.ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
             // Handle the USSD response message
