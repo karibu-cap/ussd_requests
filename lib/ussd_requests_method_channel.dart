@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -49,7 +51,7 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }) async {
     try {
       final result = await methodChannel.invokeMethod(
-        'multipleSessionBackgroundUssdRequest',
+        'multipleSessionBackgroundUssdRequestnnn',
         {
           'simSlot': simSlot,
           'ussdCode': ussdCode,
