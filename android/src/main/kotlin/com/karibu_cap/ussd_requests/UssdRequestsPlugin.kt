@@ -216,7 +216,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
             if (selectableOption != null && selectableOption.isNotEmpty()) {
               ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
                 // Handle the response message from the selected option
-                if (currentIndex == selectableOption.size - 1) {
+                if (currentIndex == selectableOption.size) {
                   // Last USSD request, complete the CompletableFuture
                   completableFuture.complete(responseMessage)
                   if(ussdRequestParams.cancelAtTheEnd){
@@ -272,7 +272,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
 
     ussdApi.send(selectableOption[currentIndex]) { responseMessage ->
       // Handle the response message from the selected option
-      if (currentIndex == selectableOption.size - 1) {
+      if (currentIndex == selectableOption.size) {
         // Last USSD request, complete the CompletableFuture
         completableFuture.complete(responseMessage)
         if(cancelAtTheEnd){
