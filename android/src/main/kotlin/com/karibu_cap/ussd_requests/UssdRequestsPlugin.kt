@@ -31,7 +31,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
-  private val isAccessibilityServicesEnableStreamRequestName = "isAccessibilityServicesEnableStreamRequest"
   private var context: Context? = null
   private var channel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
@@ -126,7 +125,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         result.error(RequestParamsException.type, e.message, null)
       }
     }
-    else  {
+    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnableRequestName) {
       result.notImplemented()
     }
   }
@@ -209,9 +208,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     val completableFuture = CompletableFuture<String>()
     val response = HashMap<String, String>()
     val currentIndex = 0
+    val selectableOption = ussdRequestParams.selectableOption
     context?.let {
-      val selectableOption = ussdRequestParams.selectableOption
-
         this.ussdApi.callUSSDInvoke(it, ussdRequestParams.ussdCode, ussdRequestParams.simSlot, map, object : USSDController.CallbackInvoke {
           override fun responseInvoke(message: String) {
             // Handle the USSD response message
@@ -220,6 +218,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
                 // Handle the response message from the selected option
                 if (currentIndex == selectableOption.size - 1) {
                   // Last USSD request, complete the CompletableFuture
+
+                  Log.i(logTag, "ussdApi lenght 1: $message")
                   completableFuture.complete(responseMessage)
                   if(ussdRequestParams.cancelAtTheEnd){
                     ussdApi.cancel()
@@ -239,12 +239,19 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
                   )
                 }
               }
+            }else {
+              completableFuture.complete(message)
+              Log.i(logTag, "ussdApi not lenght: $message")
+              if(ussdRequestParams.cancelAtTheEnd){
+                ussdApi.cancel()
+              }
             }
           }
 
           override fun over(message: String) {
             // Handle the USSD response message
             completableFuture.complete(message)
+            Log.i(logTag, "ussdApi over: $message")
             if(ussdRequestParams.cancelAtTheEnd){
               ussdApi.cancel()
             }
@@ -274,6 +281,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
       if (currentIndex == selectableOption.size - 1) {
         // Last USSD request, complete the CompletableFuture
         completableFuture.complete(responseMessage)
+        Log.i(logTag, "ussdApi: $responseMessage")
         if(cancelAtTheEnd){
           ussdApi.cancel()
         }

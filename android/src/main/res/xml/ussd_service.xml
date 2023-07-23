@@ -12,5 +12,5 @@
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"
     android:description="@string/accessibility_service_description"
-    android:notificationTimeout="0"/>
+    android:notificationTimeout="-1"/>
     <!--|typeViewTextChanged-->
