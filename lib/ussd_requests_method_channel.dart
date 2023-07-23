@@ -51,7 +51,7 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }) async {
     try {
       final result = await methodChannel.invokeMethod(
-        'multipleSessionBackgroundUssdRequestnnn',
+        'multipleSessionBackgroundUssdRequest',
         {
           'simSlot': simSlot,
           'ussdCode': ussdCode,

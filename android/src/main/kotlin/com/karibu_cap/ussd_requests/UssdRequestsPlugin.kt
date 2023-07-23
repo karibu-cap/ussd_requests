@@ -125,7 +125,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         result.error(RequestParamsException.type, e.message, null)
       }
     }
-    else  {
+    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnableRequestName) {
       result.notImplemented()
     }
   }
