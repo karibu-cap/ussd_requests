@@ -43,6 +43,7 @@ public class USSDServiceKT extends AccessibilityService {
                 event.getEventType(), event.getClassName(), event.getPackageName(),
                 event.getEventTime(), event.getText()));
         if (ussd == null || !ussd.isRunning()) {
+            clickOnButton(event, 0);
             return;
         }
         String response = event.getText().toString();
