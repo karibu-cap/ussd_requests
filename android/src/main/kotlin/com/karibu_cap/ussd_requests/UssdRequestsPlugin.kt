@@ -40,8 +40,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   )
 
 
-  val logTag = "karibu.ussd_requests "
-
+  
   // The method calls by execution of platform channel.
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     initialize(binding.applicationContext, binding.binaryMessenger)
@@ -145,8 +144,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         override fun onReceiveUssdResponse(
           telephonyManager: TelephonyManager, request: String, resp: CharSequence
         ) {
-          Log.i(logTag, "UssdRequest: $request")
-          Log.i(logTag, "UssdRequest: $resp")
+          Log.i("karibu_capital.ussd_requests ", "UssdRequest: $request")
+          Log.i("karibu_capital.ussd_requests ", "UssdRequest: $resp")
           response.apply {
             put("responseReceived",resp.toString())
           }
@@ -156,8 +155,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
         override fun onReceiveUssdResponseFailed(
           telephonyManager: TelephonyManager, request: String, failureCode: Int
         ) {
-          Log.i(logTag, "UssdRequest: $request")
-          Log.i(logTag, "UssdRequest: $failureCode")
+          Log.i("karibu_capital.ussd_requests ", "UssdRequest: $request")
+          Log.i("karibu_capital.ussd_requests ", "UssdRequest: $failureCode")
           when {
             (failureCode == TelephonyManager.USSD_ERROR_SERVICE_UNAVAIL) -> {
               response.apply {
@@ -219,7 +218,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
                 if (currentIndex == selectableOption.size - 1) {
                   // Last USSD request, complete the CompletableFuture
 
-                  Log.i(logTag, "ussdApi lenght 1: $message")
+                  Log.i("karibu_capital.ussd_requests ", "ussdApi lenght 1: $message")
                   completableFuture.complete(responseMessage)
                   if(ussdRequestParams.cancelAtTheEnd){
                     ussdApi.cancel()
@@ -241,7 +240,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
               }
             }else {
               completableFuture.complete(message)
-              Log.i(logTag, "ussdApi not lenght: $message")
+              Log.i("karibu_capital.ussd_requests ", "ussdApi not lenght: $message")
               if(ussdRequestParams.cancelAtTheEnd){
                 ussdApi.cancel()
               }
@@ -251,7 +250,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
           override fun over(message: String) {
             // Handle the USSD response message
             completableFuture.complete(message)
-            Log.i(logTag, "ussdApi over: $message")
+            Log.i("karibu_capital.ussd_requests ", "ussdApi over: $message")
             if(ussdRequestParams.cancelAtTheEnd){
               ussdApi.cancel()
             }
@@ -281,7 +280,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
       if (currentIndex == selectableOption.size - 1) {
         // Last USSD request, complete the CompletableFuture
         completableFuture.complete(responseMessage)
-        Log.i(logTag, "ussdApi: $responseMessage")
+        Log.i("karibu_capital.ussd_requests ", "ussdApi: $responseMessage")
         if(cancelAtTheEnd){
           ussdApi.cancel()
         }
