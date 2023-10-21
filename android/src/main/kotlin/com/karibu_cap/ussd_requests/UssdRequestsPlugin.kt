@@ -175,10 +175,10 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     val stream = this.ussdApi.isAccessibilityServicesEnabledStream(context!!)
     
     // Subscribe to the stream and listen for values
-    val subscription = stream.forEach { isEnabled ->
-        // Handle the stream values here
-        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-        eventSink?.success(isEnabled)
+    val subscription = stream.forEachIndexed { _, isEnabled ->
+      // Handle the stream values here
+      Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+      eventSink?.success(isEnabled)
     }
   }
 
