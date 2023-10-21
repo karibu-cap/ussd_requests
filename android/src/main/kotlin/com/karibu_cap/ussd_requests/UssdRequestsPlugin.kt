@@ -178,7 +178,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     val scope = CoroutineScope(Dispatchers.Main)
 
     scope.launch {
-      this.ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled ->
+      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled ->
             // Handle each emitted value here
             Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
             eventSink?.success(isEnabled)
@@ -186,7 +186,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     }
 
     // Optionally, you can cancel the coroutine scope when it's no longer needed
-    scope.cancel()
+    // scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
