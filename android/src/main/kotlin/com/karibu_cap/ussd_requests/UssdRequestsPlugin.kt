@@ -39,6 +39,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
   private var context: Context? = null
+  private var activity: Activity? = null
   private var methodChannel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
   private val map = hashMapOf(
