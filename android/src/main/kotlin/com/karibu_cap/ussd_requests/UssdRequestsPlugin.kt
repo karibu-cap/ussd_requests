@@ -173,7 +173,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
     // When you no longer need the stream, cancel the subscription
-    subscription.cancel()
     val stream = flow<Boolean> {
       this.ussdApi.isAccessibilityServicesEnableStream(context).forEach {
           emit(it)
