@@ -25,9 +25,11 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
 import android.content.IntentFilter
-import java.util.stream.Stream
-import java.util.stream.StreamSubscriber
-import java.util.stream.StreamSubscription
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 /** UssdRequestsPlugin */
 class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, BroadcastReceiver(), ActivityAware  {
@@ -171,27 +173,20 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-  Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
-  val stream = this.ussdApi.isAccessibilityServicesEnabledStream(context!!)
-  Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
+    val scope = CoroutineScope(Dispatchers.Main)
 
-    val subscriber = object : StreamSubscriber<Boolean> {
-        override fun onNext(value: Boolean) {
+    scope.launch {
+      this.ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled ->
             // Handle each emitted value here
-          Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-          eventSink?.success(isEnabled)
-        }
-
-        override fun onError(t: Throwable?) {
-            // Handle errors if any
-        }
-
-        override fun onComplete() {
-            // Handle stream completion
+            Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+            eventSink?.success(isEnabled)
         }
     }
 
-    val subscription: StreamSubscription<Boolean> = stream.subscribe(subscriber)
+    // Optionally, you can cancel the coroutine scope when it's no longer needed
+    scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {

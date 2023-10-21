@@ -23,6 +23,11 @@ import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
 import java.util.stream.Stream
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 /**
  * @author Romell Dominguez
@@ -318,10 +323,9 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override   fun isAccessibilityServicesEnabledStream(context: Context): Stream<Boolean> {
+    override  fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = flow {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
-        val streamBuilder = Stream.builder<Boolean>()
-
+    
         accessibilityManager?.apply {
             installedAccessibilityServiceList.forEach { service ->
                 if (service.id.contains(context.packageName) &&
@@ -331,17 +335,16 @@ object USSDController : USSDInterface, USSDApi {
                         val enabledServicesList = enabledServices.split(':')
                         if (enabledServicesList.contains(service.id)) {
                             Log.d("Accessibility", "Accessibility service ${service.id} is enabled for the app")
-                            streamBuilder.add(true)
+                            emit(true)
                         } else {
                             Log.d("Accessibility", "Accessibility service: ${service.id} is disabled for the app")
-                            streamBuilder.add(false)
+                            emit(false)
                         }
                     }
                 }
             }
         }
-
-        streamBuilder.add(false) // Accessibility service is not enabled for the app
-        return streamBuilder.build()
+    
+        emit(false) // Accessibility service is not enabled for the app
     }
 }
