@@ -172,25 +172,14 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-    // When you no longer need the stream, cancel the subscription
-    val stream = flow<Boolean> {
-      this.ussdApi.isAccessibilityServicesEnabledStream(context!!).forEach {
-          emit(it)
-      }
-    }
+    val stream = this.ussdApi.isAccessibilityServicesEnabledStream(context!!)
     
-    // Create a coroutine scope
-    val scope = CoroutineScope(Dispatchers.Main)
-    scope.launch {
-        stream.collect<Boolean> { isEnabled ->
-            // Handle the stream values here
-            Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-            eventSink?.success(isEnabled)
-        }
+    // Subscribe to the stream and listen for values
+    val subscription = stream.forEach { isEnabled ->
+        // Handle the stream values here
+        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        eventSink?.success(isEnabled)
     }
-    
-    // When you no longer need the stream, cancel the coroutine
-    scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
