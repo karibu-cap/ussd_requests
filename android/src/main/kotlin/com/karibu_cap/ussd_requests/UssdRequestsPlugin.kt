@@ -25,10 +25,9 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
 import android.content.IntentFilter
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-
+import java.util.stream.Stream
+import java.util.stream.StreamSubscriber
+import java.util.stream.StreamSubscription
 
 /** UssdRequestsPlugin */
 class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, BroadcastReceiver(), ActivityAware  {
@@ -172,12 +171,27 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-    this.ussdApi.isAccessibilityServicesEnabledStream(context!!).onEach { isEnabled ->
-      // Handle each emitted value here
-      Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-      eventSink?.success(isEnabled)
-  }
-  .launchIn(scope)
+  Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
+  val stream = this.ussdApi.isAccessibilityServicesEnabledStream(context!!)
+  Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
+
+    val subscriber = object : StreamSubscriber<Boolean> {
+        override fun onNext(value: Boolean) {
+            // Handle each emitted value here
+          Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+          eventSink?.success(isEnabled)
+        }
+
+        override fun onError(t: Throwable?) {
+            // Handle errors if any
+        }
+
+        override fun onComplete() {
+            // Handle stream completion
+        }
+    }
+
+    val subscription: StreamSubscription<Boolean> = stream.subscribe(subscriber)
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
