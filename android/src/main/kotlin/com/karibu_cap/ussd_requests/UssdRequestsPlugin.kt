@@ -20,10 +20,12 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.CompletableFuture
 import io.flutter.plugin.common.EventChannel
+import android.content.BroadcastReceiver
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
 
 
 /** UssdRequestsPlugin */
-class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
+class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, BroadcastReceiver(), ActivityAware  {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
