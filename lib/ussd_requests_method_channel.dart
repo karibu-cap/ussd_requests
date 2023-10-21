@@ -12,17 +12,17 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
 
   late final StreamSubscription? _channelStreamSubscription;
 
-  late final StreamController _controller;
+  final StreamController _controller = StreamController<bool>();
 
-  MethodChannelUssdRequests(){_controller = StreamController<bool>();
-    _channelStreamSubscription = _channel
-        .receiveBroadcastStream()
-        .where((dynamic event) => event is bool)
-        .listen((result) {
-      if (_controller.isClosed == false) {
+  MethodChannelUssdRequests() {
+    _channelStreamSubscription =
+        _channel.receiveBroadcastStream().listen((result) {
+      print('ddddddddddddddddddddddddddddddddddd aaaaaaaaaaaaaaa  : $result');
+      if (!_controller.isClosed) {
         _controller.sink.add(result);
       }
-    });}
+    });
+  }
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
