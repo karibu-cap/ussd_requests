@@ -27,12 +27,15 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
+
+  private var eventChannel : EventChannel? = null
+  private var eventSink: EventChannel.EventSink? = null
   private var channelName: String = "com.karibu_cap.ussd_requests/plugin_channel"
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
   private var context: Context? = null
-  private var channel: MethodChannel? = null
+  private var methodChannel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
   private val map = hashMapOf(
     "KEY_LOGIN" to listOf("espere", "waiting", "loading", "esperando"),
@@ -40,25 +43,34 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
   )
 
 
-  val logTag = "karibu.ussd_requests "
-
+  
   // The method calls by execution of platform channel.
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     initialize(binding.applicationContext, binding.binaryMessenger)
+    eventChannel = EventChannel(binding.binaryMessenger,"stream_accessibility_service_enabled")
+    eventChannel!!.setStreamHandler(this)
   }
 
   private fun initialize(context: Context, messenger: BinaryMessenger) {
 
     this.context = context
-    channel =
+    methodChannel =
       MethodChannel(messenger, channelName)
-    channel!!.setMethodCallHandler(this)
+      methodChannel!!.setMethodCallHandler(this)
     this.ussdApi = USSDController
   }
 
+  override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    eventSink = events
+  }
+
+  override fun onCancel(arguments: Any?) {
+    eventSink = null
+  }
+
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel?.setMethodCallHandler(null)
-    channel = null
+    methodChannel?.setMethodCallHandler(null)
+    methodChannel = null
     context = null
   }
 
@@ -128,6 +140,21 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnableRequestName) {
       result.notImplemented()
     }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.KITKAT)
+  override fun onReceive(context: Context, intent: Intent) {
+    val stream = this.ussdApi.isAccessibilityServicesEnableStream(context)
+    
+    // Subscribe to the stream and listen for values
+    val subscription = stream.forEach { isEnabled ->
+        // Handle the stream values here
+        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        eventSink?.success(isEnabled)
+    }
+    
+    // When you no longer need the stream, cancel the subscription
+    subscription.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {

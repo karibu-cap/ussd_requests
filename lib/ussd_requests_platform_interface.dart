@@ -49,4 +49,8 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
   Future<bool> isAccessibilityServicesEnable() async {
     return false;
   }
+
+  Stream<bool> get streamAccessibilityServiceEnabled {
+    return Stream.value(false);
+  }
 }
