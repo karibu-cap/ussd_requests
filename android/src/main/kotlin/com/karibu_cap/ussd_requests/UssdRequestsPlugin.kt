@@ -25,6 +25,9 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
 import android.content.IntentFilter
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 
 
 /** UssdRequestsPlugin */
@@ -49,7 +52,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     "KEY_ERROR" to listOf("problema", "problem", "error", "null")
   )
 
-
+  val logTag = "karibu.ussd_requests "
   
   // The method calls by execution of platform channel.
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -169,30 +172,28 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-
-    
     // When you no longer need the stream, cancel the subscription
     subscription.cancel()
     val stream = flow<Boolean> {
       this.ussdApi.isAccessibilityServicesEnableStream(context).forEach {
           emit(it)
       }
-  }
-  
-  // Create a coroutine scope
-  val scope = CoroutineScope(Dispatchers.Main)
-  
-  // Launch a coroutine to collect the stream values
-  val job = scope.launch {
-      stream.collect { isEnabled ->
-          // Handle the stream values here
-          Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-        eventSink?.success(isEnabled)
-      }
-  }
-  
-  // When you no longer need the stream, cancel the coroutine
-  scope.cancel()
+    }
+    
+    // Create a coroutine scope
+    val scope = CoroutineScope(Dispatchers.Main)
+    
+    // Launch a coroutine to collect the stream values
+    val job = scope.launch {
+        stream.collect { isEnabled ->
+            // Handle the stream values here
+            Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+          eventSink?.success(isEnabled)
+        }
+    }
+    
+    // When you no longer need the stream, cancel the coroutine
+    scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
