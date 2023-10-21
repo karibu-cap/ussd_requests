@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture
 import io.flutter.plugin.common.EventChannel
 import android.content.BroadcastReceiver
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 
 
 /** UssdRequestsPlugin */
@@ -75,6 +76,27 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     methodChannel?.setMethodCallHandler(null)
     methodChannel = null
     context = null
+  }
+
+  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    channel = null
+    eventSink = null
+  }
+
+  override fun onAttachedToActivity(p0: ActivityPluginBinding) {
+    activity = p0.activity
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    TODO("Not yet implemented")
+  }
+
+  override fun onReattachedToActivityForConfigChanges(p0: ActivityPluginBinding) {
+    TODO("Not yet implemented")
+  }
+
+  override fun onDetachedFromActivity() {
+    TODO("Not yet implemented")
   }
 
 
