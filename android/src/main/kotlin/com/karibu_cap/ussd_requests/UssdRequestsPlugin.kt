@@ -174,20 +174,18 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   override fun onReceive(context: Context, intent: Intent) {
     // When you no longer need the stream, cancel the subscription
     val stream = flow<Boolean> {
-      this.ussdApi.isAccessibilityServicesEnableStream(context).forEach {
+      this.ussdApi.isAccessibilityServicesEnabledStream(context!!).forEach {
           emit(it)
       }
     }
     
     // Create a coroutine scope
     val scope = CoroutineScope(Dispatchers.Main)
-    
-    // Launch a coroutine to collect the stream values
-    val job = scope.launch {
-        stream.collect { isEnabled ->
+    scope.launch {
+        stream.collect<Boolean> { isEnabled ->
             // Handle the stream values here
             Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-          eventSink?.success(isEnabled)
+            eventSink?.success(isEnabled)
         }
     }
     

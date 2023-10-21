@@ -318,7 +318,7 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override   fun isAccessibilityServicesEnableStream(context: Context): Stream<Boolean> {
+    override   fun isAccessibilityServicesEnabledStream(context: Context): Stream<Boolean> {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
         val streamBuilder = Stream.builder<Boolean>()
 
