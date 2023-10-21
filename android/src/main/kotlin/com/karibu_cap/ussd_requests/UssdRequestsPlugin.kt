@@ -25,9 +25,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
 import android.content.IntentFilter
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
 
 
 /** UssdRequestsPlugin */
@@ -173,12 +170,12 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
     val stream = this.ussdApi.isAccessibilityServicesEnabledStream(context!!)
-    
+
     // Subscribe to the stream and listen for values
-    val subscription = stream.forEachIndexed { _, isEnabled ->
-      // Handle the stream values here
-      Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-      eventSink?.success(isEnabled)
+    val subscription = stream.forEach { isEnabled ->
+        // Handle the stream values here
+        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        eventSink?.success(isEnabled)
     }
   }
 
