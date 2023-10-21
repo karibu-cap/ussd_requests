@@ -23,6 +23,8 @@ import io.flutter.plugin.common.EventChannel
 import android.content.BroadcastReceiver
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import android.content.Intent
+import android.content.IntentFilter
 
 
 /** UssdRequestsPlugin */
@@ -77,10 +79,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     methodChannel?.setMethodCallHandler(null)
     methodChannel = null
     context = null
-  }
-
-  override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel = null
+    eventChannel = null
     eventSink = null
   }
 
@@ -170,17 +169,30 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-    val stream = this.ussdApi.isAccessibilityServicesEnableStream(context)
-    
-    // Subscribe to the stream and listen for values
-    val subscription = stream.forEach { isEnabled ->
-        // Handle the stream values here
-        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-        eventSink?.success(isEnabled)
-    }
+
     
     // When you no longer need the stream, cancel the subscription
     subscription.cancel()
+    val stream = flow<Boolean> {
+      this.ussdApi.isAccessibilityServicesEnableStream(context).forEach {
+          emit(it)
+      }
+  }
+  
+  // Create a coroutine scope
+  val scope = CoroutineScope(Dispatchers.Main)
+  
+  // Launch a coroutine to collect the stream values
+  val job = scope.launch {
+      stream.collect { isEnabled ->
+          // Handle the stream values here
+          Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        eventSink?.success(isEnabled)
+      }
+  }
+  
+  // When you no longer need the stream, cancel the coroutine
+  scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
