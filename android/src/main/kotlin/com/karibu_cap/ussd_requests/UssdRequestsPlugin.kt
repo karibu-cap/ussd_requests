@@ -19,47 +19,88 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.CompletableFuture
-
+import io.flutter.plugin.common.EventChannel
+import android.content.BroadcastReceiver
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import android.content.Intent
+import android.content.IntentFilter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 /** UssdRequestsPlugin */
-class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
+class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, BroadcastReceiver(), ActivityAware  {
   /// The MethodChannel that will the communication between Flutter and native Android
   ///
   /// This local reference serves to register the plugin with the Flutter Engine and unregister it
   /// when the Flutter Engine is detached from the Activity
+
+  private var eventChannel : EventChannel? = null
+  private var eventSink: EventChannel.EventSink? = null
   private var channelName: String = "com.karibu_cap.ussd_requests/plugin_channel"
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
   private var context: Context? = null
-  private var channel: MethodChannel? = null
+  private var activity: Activity? = null
+  private var methodChannel: MethodChannel? = null
   private var ussdApi : USSDApi = USSDController
   private val map = hashMapOf(
     "KEY_LOGIN" to listOf("espere", "waiting", "loading", "esperando"),
     "KEY_ERROR" to listOf("problema", "problem", "error", "null")
   )
 
-
   val logTag = "karibu.ussd_requests "
-
+  
   // The method calls by execution of platform channel.
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     initialize(binding.applicationContext, binding.binaryMessenger)
+    eventChannel = EventChannel(binding.binaryMessenger,"stream_accessibility_service_enabled")
+    eventChannel!!.setStreamHandler(this)
   }
 
   private fun initialize(context: Context, messenger: BinaryMessenger) {
 
     this.context = context
-    channel =
+    methodChannel =
       MethodChannel(messenger, channelName)
-    channel!!.setMethodCallHandler(this)
+      methodChannel!!.setMethodCallHandler(this)
     this.ussdApi = USSDController
   }
 
+  override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    eventSink = events
+  }
+
+  override fun onCancel(arguments: Any?) {
+    eventSink = null
+  }
+
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel?.setMethodCallHandler(null)
-    channel = null
+    methodChannel?.setMethodCallHandler(null)
+    methodChannel = null
     context = null
+    eventChannel = null
+    eventSink = null
+  }
+
+  override fun onAttachedToActivity(p0: ActivityPluginBinding) {
+    activity = p0.activity
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() {
+    TODO("Not yet implemented")
+  }
+
+  override fun onReattachedToActivityForConfigChanges(p0: ActivityPluginBinding) {
+    TODO("Not yet implemented")
+  }
+
+  override fun onDetachedFromActivity() {
+    TODO("Not yet implemented")
   }
 
 
@@ -128,6 +169,24 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler {
     if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnableRequestName) {
       result.notImplemented()
     }
+  }
+
+  @RequiresApi(Build.VERSION_CODES.KITKAT)
+  override fun onReceive(context: Context, intent: Intent) {
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
+    val scope = CoroutineScope(Dispatchers.Main)
+
+    scope.launch {
+      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled ->
+            // Handle each emitted value here
+            Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+            eventSink?.success(isEnabled)
+        }
+    }
+
+    // Optionally, you can cancel the coroutine scope when it's no longer needed
+    // scope.cancel()
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
