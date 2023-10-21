@@ -19,6 +19,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.util.concurrent.CompletableFuture
+import io.flutter.plugin.common.EventChannel
 
 
 /** UssdRequestsPlugin */
