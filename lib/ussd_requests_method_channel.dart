@@ -12,7 +12,17 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
 
   late final StreamSubscription? _channelStreamSubscription;
 
-  late final StreamController? _controller;
+  late final StreamController _controller;
+
+  MethodChannelUssdRequests(){_controller = StreamController<bool>();
+    _channelStreamSubscription = _channel
+        .receiveBroadcastStream()
+        .where((dynamic event) => event is bool)
+        .listen((result) {
+      if (_controller.isClosed == false) {
+        _controller.sink.add(result);
+      }
+    });}
 
   /// The method channel used to interact with the native platform.
   @visibleForTesting
@@ -91,24 +101,13 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
 
   @override
   Stream<bool> get streamAccessibilityServiceEnabled {
-    if (_controller == null) {
-    _controller = StreamController<bool>();
-    _channelStreamSubscription = _channel
-        .receiveBroadcastStream()
-        .where((dynamic event) => event is bool)
-        .listen((result) {
-      if (_controller?.isClosed == false) {
-        _controller?.sink.add(result);
-      }
-    });
-    }
-    return _controller?.stream as Stream<bool>;
+    return _controller.stream as Stream<bool>;
   }
 
   /// dispose method.
   void dispose() {
     _channelStreamSubscription?.cancel();
-    _controller?.close();
+    _controller.close();
     _channelStreamSubscription = null;
   }
 }
