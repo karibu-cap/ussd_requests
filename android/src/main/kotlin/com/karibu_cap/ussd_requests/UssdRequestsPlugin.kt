@@ -87,7 +87,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     }
 
     // Optionally, you can cancel the coroutine scope when it's no longer needed
-    // scope.cancel()
+    scope.cancel()
   }
 
   override fun onCancel(arguments: Any?) {
