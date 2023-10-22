@@ -336,15 +336,15 @@ object USSDController : USSDInterface, USSDApi {
         // Register the listener
         accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
     
-        // Remove the listener when the flow is canceled
-        awaitClose {
-            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-        }
-    
         // Emit the initial value
         accessibilityManager?.let {
             val enabled = it.isEnabled
             trySend(enabled).isSuccess
+        }
+    
+        awaitClose {
+            // Remove the listener when the flow is canceled
+            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
         }
     }
         .flowOn(Dispatchers.Default)
