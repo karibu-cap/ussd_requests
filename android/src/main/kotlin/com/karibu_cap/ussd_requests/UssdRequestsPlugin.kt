@@ -73,6 +73,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   }
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 3333333")
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 44444444")
     eventSink = events
   }
 
