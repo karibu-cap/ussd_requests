@@ -73,9 +73,21 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   }
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 3333333")
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 44444444")
-    eventSink = events
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
+    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
+    val scope = CoroutineScope(Dispatchers.Main)
+
+    scope.launch {
+      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
+        // Handle each emitted value here
+        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        eventSink?.success(isEnabled)
+      }
+    }
+
+    // Optionally, you can cancel the coroutine scope when it's no longer needed
+    // scope.cancel()
+    // eventSink = events
   }
 
   override fun onCancel(arguments: Any?) {
@@ -176,20 +188,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   @RequiresApi(Build.VERSION_CODES.KITKAT)
   override fun onReceive(context: Context, intent: Intent) {
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
-    val scope = CoroutineScope(Dispatchers.Main)
-
-    scope.launch {
-      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
-        // Handle each emitted value here
-        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
-        eventSink?.success(isEnabled)
-      }
-    }
-
-    // Optionally, you can cancel the coroutine scope when it's no longer needed
-    // scope.cancel()
+  
   }
 
   private fun singleSessionBackgroundUssdRequest(ussdRequestParams : SingleSessionBackgroundUssdRequestParams): CompletableFuture<HashMap<String, String>> {
