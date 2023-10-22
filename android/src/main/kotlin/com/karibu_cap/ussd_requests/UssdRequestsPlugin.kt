@@ -73,6 +73,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   }
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+    eventSink = events
     Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
     Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
     val scope = CoroutineScope(Dispatchers.Main)
@@ -87,7 +88,6 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
     // Optionally, you can cancel the coroutine scope when it's no longer needed
     // scope.cancel()
-    // eventSink = events
   }
 
   override fun onCancel(arguments: Any?) {
