@@ -15,10 +15,8 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   final StreamController _controller = StreamController<bool>();
 
   MethodChannelUssdRequests() {
-    print('ddddddddddddddddddddddddddddddddddd aaaaaaaaaaaaaaa cccccccccccccccccc');
     _channelStreamSubscription =
         _channel.receiveBroadcastStream().listen((result) {
-      print('ddddddddddddddddddddddddddddddddddd aaaaaaaaaaaaaaa  : $result');
       if (!_controller.isClosed) {
         _controller.sink.add(result);
       }

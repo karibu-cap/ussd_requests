@@ -26,8 +26,12 @@ import java.util.stream.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.channels.awaitClose
 
 /**
  * @author Romell Dominguez
@@ -323,28 +327,26 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override  fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = flow {
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
     
-        accessibilityManager?.apply {
-            installedAccessibilityServiceList.forEach { service ->
-                if (service.id.contains(context.packageName) &&
-                    Settings.Secure.getInt(context.applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED) == 1) {
-                    val enabledServices = Settings.Secure.getString(context.applicationContext.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-                    if (enabledServices != null) {
-                        val enabledServicesList = enabledServices.split(':')
-                        if (enabledServicesList.contains(service.id)) {
-                            Log.d("Accessibility", "Accessibility service ${service.id} is enabled for the app")
-                            emit(true)
-                        } else {
-                            Log.d("Accessibility", "Accessibility service: ${service.id} is disabled for the app")
-                            emit(false)
-                        }
-                    }
-                }
-            }
+        val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
+            trySend(enabled).isSuccess
         }
     
-        emit(false) // Accessibility service is not enabled for the app
+        // Register the listener
+        accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
+    
+        // Emit the initial value
+        accessibilityManager?.let {
+            val enabled = it.isEnabled
+            trySend(enabled).isSuccess
+        }
+    
+        awaitClose {
+            // Remove the listener when the flow is canceled
+            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
+        }
     }
+        .flowOn(Dispatchers.Default)
 }
