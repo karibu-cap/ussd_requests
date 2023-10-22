@@ -337,7 +337,7 @@ object USSDController : USSDInterface, USSDApi {
         accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
     
         // Remove the listener when the flow is canceled
-        awaitClose {
+        invokeOnClose {
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
         }
     
