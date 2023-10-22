@@ -74,14 +74,12 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
     eventSink = events
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 1111")
-    Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: 222")
     val scope = CoroutineScope(Dispatchers.Main)
 
     scope.launch {
       ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
         // Handle each emitted value here
-        Log.i(logTag, "isAccessibilityServicesEnableStream isAccessibilityServicesEnableStream: $isEnabled")
+        Log.i(logTag, "isAccessibilityServicesEnableStream: $isEnabled")
         eventSink?.success(isEnabled)
       }
     }
