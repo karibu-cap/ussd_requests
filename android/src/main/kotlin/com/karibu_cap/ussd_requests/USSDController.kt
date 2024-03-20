@@ -25,8 +25,6 @@ import androidx.annotation.RequiresApi
 import java.util.stream.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,8 +32,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import java.util.*
-import kotlin.collections.HashMap
 
 /**
  * @author Romell Dominguez
@@ -45,8 +41,6 @@ import kotlin.collections.HashMap
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<String, SendChannel<Boolean>>()
-    private val accessibilityManager: AccessibilityManager? = ContextCompat.getSystemService(context, AccessibilityManager::class.java)
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -332,7 +326,6 @@ object USSDController : USSDInterface, USSDApi {
         Log.d("Accessibility", "Accessibility service is not enabled for the app")
         return false
     }
-
     @RequiresApi(Build.VERSION_CODES.N)
     override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
@@ -353,9 +346,6 @@ object USSDController : USSDInterface, USSDApi {
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-            // Remove the channel associated with the package name
-            accessibilityStatusChannels.remove(packageName)
-            offer(false) // Emit false when the flow is canceled
         }
     }
         .flowOn(Dispatchers.Default)
