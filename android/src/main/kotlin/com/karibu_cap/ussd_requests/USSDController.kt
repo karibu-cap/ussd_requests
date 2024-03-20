@@ -35,6 +35,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
+import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * @author Romell Dominguez
@@ -44,7 +46,7 @@ import kotlinx.coroutines.channels.awaitClose
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<String, SendChannel<Boolean>>()
+    private val accessibilityStatusChannels = mutableMapOf<UUID, SendChannel<Boolean>>()
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -332,7 +334,7 @@ object USSDController : USSDInterface, USSDApi {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(context: Context, packageName: String): Flow<Boolean> = callbackFlow {
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
         val accessibilityManager = ContextCompat.getSystemService(context, AccessibilityManager::class.java)
 
         val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
@@ -346,19 +348,22 @@ object USSDController : USSDInterface, USSDApi {
         val enabled = accessibilityManager?.isEnabled ?: false
         offer(enabled)
 
-        // Store the channel associated with the package name
-        accessibilityStatusChannels[packageName] = channel
+        // Generate a unique identifier for the channel
+        val channelId = UUID.randomUUID()
+
+        // Store the channel associated with the identifier
+        accessibilityStatusChannels[channelId] = channel
 
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-            // Remove the channel associated with the package name
-            accessibilityStatusChannels.remove(packageName)
+            // Remove the channel associated with the identifier
+            accessibilityStatusChannels.remove(channelId)
             offer(false) // Emit false when the flow is canceled
         }
     }.flowOn(Dispatchers.Default)
 
-    fun setAccessibilityServiceEnabled(packageName: String, enabled: Boolean) {
-        accessibilityStatusChannels[packageName]?.offer(enabled)
+    fun setAccessibilityServiceEnabled(channelId: UUID, enabled: Boolean) {
+        accessibilityStatusChannels[channelId]?.offer(enabled)
     }
 }
