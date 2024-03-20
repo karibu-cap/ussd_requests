@@ -335,7 +335,7 @@ object USSDController : USSDInterface, USSDApi {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(): Flow<Boolean> = callbackFlow {
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
         val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
             offer(enabled)
         }
