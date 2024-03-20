@@ -22,11 +22,10 @@ import android.telecom.TelecomManager
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import java.util.stream.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,6 +33,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
+
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 
 /**
  * @author Romell Dominguez
@@ -43,8 +45,7 @@ import kotlinx.coroutines.channels.awaitClose
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<String, SendChannel<Boolean>>()
-    private val accessibilityManager: AccessibilityManager? = ContextCompat.getSystemService(context, AccessibilityManager::class.java)
+    private val accessibilityStatusChannels = mutableMapOf<String, Channel<Boolean>>()
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -332,29 +333,48 @@ object USSDController : USSDInterface, USSDApi {
     }
     @RequiresApi(Build.VERSION_CODES.N)
     override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+
         val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
-            offer(enabled)
+            trySend(enabled).isSuccess
         }
 
         // Register the listener
         accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
 
         // Emit the initial value
-        val enabled = accessibilityManager?.isEnabled ?: false
-        offer(enabled)
+        accessibilityManager?.let {
+            val enabled = it.isEnabled
+            trySend(enabled).isSuccess
+        }
 
         // Get the package name of the current application
         val packageName = context.packageName
 
+        // Create a new channel for the current application
+        val channel = Channel<Boolean>()
+
         // Store the channel associated with the package name
         accessibilityStatusChannels[packageName] = channel
+
+        // Listen for updates on the channel and send them downstream
+        launch {
+            for (enabled in channel) {
+                trySend(enabled)
+            }
+        }
 
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
             // Remove the channel associated with the package name
             accessibilityStatusChannels.remove(packageName)
-            offer(false) // Emit false when the flow is canceled
+            // Close the channel
+            channel.close()
         }
     }.flowOn(Dispatchers.Default)
+
+    fun updateAccessibilityStatus(enabled: Boolean, packageName: String) {
+        accessibilityStatusChannels[packageName]?.trySend(enabled)
+    }
 }
