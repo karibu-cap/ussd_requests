@@ -24,12 +24,9 @@ import android.content.BroadcastReceiver
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
-import android.content.IntentFilter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 
 /** UssdRequestsPlugin */
@@ -77,7 +74,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     val scope = CoroutineScope(Dispatchers.Main)
 
     scope.launch {
-      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
+      ussdApi.isAccessibilityServicesEnabledStream(context!!, arguments).collect { isEnabled: Boolean ->
         // Handle each emitted value here
         Log.i(logTag, "isAccessibilityServicesEnableStream: $isEnabled")
         eventSink?.success(isEnabled)

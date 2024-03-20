@@ -50,7 +50,7 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
     return false;
   }
 
-  Stream<bool> get streamAccessibilityServiceEnabled {
+  Stream<bool> streamAccessibilityServiceEnabled(String packageName) {
     return Stream.value(false);
   }
 }

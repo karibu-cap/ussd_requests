@@ -15,12 +15,7 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   final StreamController _controller = StreamController<bool>();
 
   MethodChannelUssdRequests() {
-    _channelStreamSubscription =
-        _channel.receiveBroadcastStream().listen((result) {
-      if (!_controller.isClosed) {
-        _controller.sink.add(result);
-      }
-    });
+    
   }
 
   /// The method channel used to interact with the native platform.
@@ -99,7 +94,14 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }
 
   @override
-  Stream<bool> get streamAccessibilityServiceEnabled {
+  Stream<bool> streamAccessibilityServiceEnabled(String packageName) {
+    _channelStreamSubscription =
+        _channel.receiveBroadcastStream(packageName).listen((result) {
+      if (!_controller.isClosed) {
+        _controller.sink.add(result);
+      }
+    });
+
     return _controller.stream as Stream<bool>;
   }
 

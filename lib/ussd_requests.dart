@@ -32,6 +32,7 @@ class UssdRequests {
     return await UssdRequestsPlatform.instance.isAccessibilityServicesEnable();
   }
 
-  static Stream<bool> get streamAccessibilityServiceEnabled =>
-      UssdRequestsPlatform.instance.streamAccessibilityServiceEnabled;
+  static Stream<bool> streamAccessibilityServiceEnabled(String packageName){
+    return UssdRequestsPlatform.instance.streamAccessibilityServiceEnabled as Stream<bool>;
+  }
 }
