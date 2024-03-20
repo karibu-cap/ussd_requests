@@ -47,6 +47,7 @@ import kotlin.collections.HashMap
 object USSDController : USSDInterface, USSDApi {
 
     private val accessibilityStatusChannels = mutableMapOf<String, SendChannel<Boolean>>()
+    private val accessibilityManager: AccessibilityManager? = ContextCompat.getSystemService(context, AccessibilityManager::class.java)
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -334,9 +335,7 @@ object USSDController : USSDInterface, USSDApi {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
-        val accessibilityManager = ContextCompat.getSystemService(context, AccessibilityManager::class.java)
-
+    override fun isAccessibilityServicesEnabledStream(): Flow<Boolean> = callbackFlow {
         val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
             offer(enabled)
         }
@@ -350,14 +349,6 @@ object USSDController : USSDInterface, USSDApi {
 
         // Get the package name of the current application
         val packageName = context.packageName
-
-        // Filter the installed accessibility services based on the package name
-        val matchingServices = accessibilityManager?.installedAccessibilityServiceList?.filter { service ->
-            service.id.contains(packageName)
-        }
-
-        // Generate a unique identifier for the channel
-        val channelId = UUID.randomUUID()
 
         // Store the channel associated with the package name
         accessibilityStatusChannels[packageName] = channel

@@ -74,7 +74,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     val scope = CoroutineScope(Dispatchers.Main)
 
     scope.launch {
-      ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
+      ussdApi.isAccessibilityServicesEnabledStream().collect { isEnabled: Boolean ->
         // Handle each emitted value here
         Log.i(logTag, "isAccessibilityServicesEnableStream: $isEnabled")
         eventSink?.success(isEnabled)
