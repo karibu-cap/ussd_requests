@@ -22,7 +22,6 @@ import android.telecom.TelecomManager
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat
 import java.util.stream.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -336,23 +335,21 @@ object USSDController : USSDInterface, USSDApi {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+    
         val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
-            offer(enabled)
+            trySend(enabled).isSuccess
         }
-
+    
         // Register the listener
         accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
-
+    
         // Emit the initial value
-        val enabled = accessibilityManager?.isEnabled ?: false
-        offer(enabled)
-
-        // Get the package name of the current application
-        val packageName = context.packageName
-
-        // Store the channel associated with the package name
-        accessibilityStatusChannels[packageName] = channel
-
+        accessibilityManager?.let {
+            val enabled = it.isEnabled
+            trySend(enabled).isSuccess
+        }
+    
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
@@ -360,5 +357,6 @@ object USSDController : USSDInterface, USSDApi {
             accessibilityStatusChannels.remove(packageName)
             offer(false) // Emit false when the flow is canceled
         }
-    }.flowOn(Dispatchers.Default)
+    }
+        .flowOn(Dispatchers.Default)
 }
