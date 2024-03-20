@@ -46,7 +46,7 @@ import kotlin.collections.HashMap
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<UUID, SendChannel<Boolean>>()
+    private val accessibilityStatusChannels = mutableMapOf<String, SendChannel<Boolean>>()
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -348,22 +348,26 @@ object USSDController : USSDInterface, USSDApi {
         val enabled = accessibilityManager?.isEnabled ?: false
         offer(enabled)
 
+        // Get the package name of the current application
+        val packageName = context.packageName
+
+        // Filter the installed accessibility services based on the package name
+        val matchingServices = accessibilityManager?.installedAccessibilityServiceList?.filter { service ->
+            service.id.contains(packageName)
+        }
+
         // Generate a unique identifier for the channel
         val channelId = UUID.randomUUID()
 
-        // Store the channel associated with the identifier
-        accessibilityStatusChannels[channelId] = channel
+        // Store the channel associated with the package name
+        accessibilityStatusChannels[packageName] = channel
 
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-            // Remove the channel associated with the identifier
-            accessibilityStatusChannels.remove(channelId)
+            // Remove the channel associated with the package name
+            accessibilityStatusChannels.remove(packageName)
             offer(false) // Emit false when the flow is canceled
         }
     }.flowOn(Dispatchers.Default)
-
-    fun setAccessibilityServiceEnabled(channelId: UUID, enabled: Boolean) {
-        accessibilityStatusChannels[channelId]?.offer(enabled)
-    }
 }
