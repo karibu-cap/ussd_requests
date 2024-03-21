@@ -348,14 +348,15 @@ object USSDController : USSDInterface, USSDApi {
             trySend(enabled).isSuccess
         }
 
-        // Get the package name of the current application
-        val packageName = context.packageName
+        // Get the application name of the current application
+        val applicationInfo = context.applicationInfo
+        val applicationName = context.packageManager.getApplicationLabel(applicationInfo).toString()
 
         // Create a new channel for the current application
         val channel = Channel<Boolean>()
 
-        // Store the channel associated with the package name
-        accessibilityStatusChannels[packageName] = channel
+        // Store the channel associated with the application name
+        accessibilityStatusChannels[applicationName] = channel
 
         // Listen for updates on the channel and send them downstream
         launch {
@@ -367,14 +368,14 @@ object USSDController : USSDInterface, USSDApi {
         awaitClose {
             // Remove the listener when the flow is canceled
             accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-            // Remove the channel associated with the package name
-            accessibilityStatusChannels.remove(packageName)
+            // Remove the channel associated with the application name
+            accessibilityStatusChannels.remove(applicationName)
             // Close the channel
             channel.close()
         }
     }.flowOn(Dispatchers.Default)
 
-    fun updateAccessibilityStatus(enabled: Boolean, packageName: String) {
-        accessibilityStatusChannels[packageName]?.trySend(enabled)
+    fun updateAccessibilityStatus(enabled: Boolean, applicationName: String) {
+        accessibilityStatusChannels[applicationName]?.trySend(enabled)
     }
 }
