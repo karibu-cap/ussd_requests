@@ -332,50 +332,23 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = flow {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
-
-        val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
-            trySend(enabled).isSuccess
-        }
-
-        // Register the listener
-        accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
-
-        // Emit the initial value
-        accessibilityManager?.let {
-            val enabled = it.isEnabled
-            trySend(enabled).isSuccess
-        }
-
-        // Get the application name of the current application
-        val applicationInfo = context.applicationInfo
-        val applicationName = context.packageManager.getApplicationLabel(applicationInfo).toString()
-
-        // Create a new channel for the current application
-        val channel = Channel<Boolean>()
-
-        // Store the channel associated with the application name
-        accessibilityStatusChannels[applicationName] = channel
-
-        // Listen for updates on the channel and send them downstream
-        launch {
-            for (enabled in channel) {
-                trySend(enabled)
+        accessibilityManager?.apply {
+            installedAccessibilityServiceList.forEach { service ->
+                if (service.id.contains(context.packageName) &&
+                    Settings.Secure.getInt(context.applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED) == 1) {
+                    val enabledServices = Settings.Secure.getString(context.applicationContext.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                    if (enabledServices != null) {
+                        val enabledServicesList = enabledServices.split(':')
+                        if (enabledServicesList.contains(service.id)) {
+                            emit(true)
+                            return@flow
+                        }
+                    }
+                }
             }
         }
-
-        awaitClose {
-            // Remove the listener when the flow is canceled
-            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-            // Remove the channel associated with the application name
-            accessibilityStatusChannels.remove(applicationName)
-            // Close the channel
-            channel.close()
-        }
+        emit(false)
     }.flowOn(Dispatchers.Default)
-
-    fun updateAccessibilityStatus(enabled: Boolean, applicationName: String) {
-        accessibilityStatusChannels[applicationName]?.trySend(enabled)
-    }
 }
