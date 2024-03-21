@@ -32,7 +32,6 @@ class UssdRequests {
     return await UssdRequestsPlatform.instance.isAccessibilityServicesEnable();
   }
 
-  static Stream<bool> get streamAccessibilityServiceEnabled {
-    return UssdRequestsPlatform.instance.streamAccessibilityServiceEnabled;
-  }
+  static Stream<bool> get streamAccessibilityServiceEnabled =>
+      UssdRequestsPlatform.instance.streamAccessibilityServiceEnabled;
 }

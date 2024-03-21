@@ -341,7 +341,7 @@ object USSDController : USSDInterface, USSDApi {
                     val enabledServices = Settings.Secure.getString(context.applicationContext.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
                     if (enabledServices != null) {
                         val enabledServicesList = enabledServices.split(':')
-                        if (enabledServicesList.contains(service.id)) {
+                        if (enabledServicesList.any { enabledService -> enabledService.contains(service.id) }) {
                             emit(true)
                             return@flow
                         }
