@@ -20,6 +20,7 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
@@ -36,9 +37,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.withContext
 
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOn
 
 /**
  * @author Romell Dominguez
@@ -339,13 +339,14 @@ object USSDController : USSDInterface, USSDApi {
         val contentResolver: ContentResolver = context.contentResolver
 
         val accessibilitySettingsUri: Uri = Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED)
-        val observer = object : ContentObserver(Handler()) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
                 trySend(enabled).isSuccess
             }
         }
 
+        // Register the observer on the main thread
         contentResolver.registerContentObserver(accessibilitySettingsUri, true, observer)
 
         // Emit the initial value
@@ -353,6 +354,7 @@ object USSDController : USSDInterface, USSDApi {
         trySend(enabled).isSuccess
 
         awaitClose {
+            // Unregister the observer
             contentResolver.unregisterContentObserver(observer)
         }
     }.flowOn(Dispatchers.Default)
