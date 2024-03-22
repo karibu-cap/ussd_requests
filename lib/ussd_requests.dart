@@ -28,7 +28,7 @@ class UssdRequests {
             ussdCode: ussdCode);
   }
 
-  static Future<bool> isAccessibilityServicesEnable() async {
+  static Future<bool> isAccessibilityServicesEnabled() async {
     return await UssdRequestsPlatform.instance.isAccessibilityServicesEnabled();
   }
 
