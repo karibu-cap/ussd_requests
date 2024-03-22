@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'models/custom_app_info.dart';
 import 'models/ussd_single_session_response.dart';
 import 'ussd_requests_platform_interface.dart';
 
@@ -108,5 +109,19 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
     _channelStreamSubscription?.cancel();
     _controller.close();
     _channelStreamSubscription = null;
+  }
+
+  @override
+  Future<CustomAppInfo?> getEnabledAccessibilityApps() async {
+    try {
+      final result = await methodChannel
+          .invokeMethod('getEnabledAccessibilityAppsRequest');
+      return CustomAppInfo.fromJson(json: Map<String, dynamic>.from(result));
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to invoke Kotlin method: ${e.message}');
+      }
+    }
+    return null;
   }
 }

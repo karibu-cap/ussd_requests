@@ -1,3 +1,4 @@
+import 'models/custom_app_info.dart';
 import 'models/ussd_single_session_response.dart';
 import 'ussd_requests_platform_interface.dart';
 
@@ -30,6 +31,10 @@ class UssdRequests {
 
   static Future<bool> isAccessibilityServicesEnabled() async {
     return await UssdRequestsPlatform.instance.isAccessibilityServicesEnabled();
+  }
+
+  static Future<CustomAppInfo?> getEnabledAccessibilityApps() async {
+    return await UssdRequestsPlatform.instance.getEnabledAccessibilityApps();
   }
 
   static Stream<bool> get streamAccessibilityServiceEnabled =>

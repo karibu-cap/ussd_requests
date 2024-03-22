@@ -25,6 +25,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
@@ -45,6 +46,8 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
   private val isAccessibilityServicesEnabledRequestName = "isAccessibilityServicesEnabledRequest"
+  private val getEnabledAccessibilityAppsRequestName = "getEnabledAccessibilityAppsRequest"
+
   private var context: Context? = null
   private var activity: Activity? = null
   private var methodChannel: MethodChannel? = null
@@ -180,7 +183,16 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
         result.error(RequestParamsException.type, e.message, null)
       }
     }
-    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnabledRequestName) {
+    if (call.method == getEnabledAccessibilityAppsRequestName) {
+      try {
+          result.success(
+            this.ussdApi.getEnabledAccessibilityApps(context!!)
+          )
+      } catch (e: Exception) {
+        result.error(RequestParamsException.type, e.message, null)
+      }
+    }
+    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnabledRequestName && call.method != getEnabledAccessibilityAppsRequestName) {
       result.notImplemented()
     }
   }
