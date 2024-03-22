@@ -13,10 +13,13 @@ package com.karibu_cap.ussd_requests
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
 import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
@@ -332,23 +335,25 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = flow {
-        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
-        accessibilityManager?.apply {
-            val packageName = context.packageName
-            val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            val accessibilityEnabled = Settings.Secure.getInt(context.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
+        val contentResolver: ContentResolver = context.contentResolver
 
-            if (enabledServices?.contains(packageName) == true && accessibilityEnabled == 1) {
-                val enabledServicesList = enabledServices.split(':')
-                installedAccessibilityServiceList.forEach { service ->
-                    if (enabledServicesList.any { enabledService -> enabledService.contains(service.id) }) {
-                        emit(true)
-                        return@flow
-                    }
-                }
+        val accessibilitySettingsUri: Uri = Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED)
+        val observer = object : ContentObserver(Handler()) {
+            override fun onChange(selfChange: Boolean) {
+                val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
+                trySend(enabled).isSuccess
             }
         }
-        emit(false)
-    }
+
+        contentResolver.registerContentObserver(accessibilitySettingsUri, true, observer)
+
+        // Emit the initial value
+        val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
+        trySend(enabled).isSuccess
+
+        awaitClose {
+            contentResolver.unregisterContentObserver(observer)
+        }
+    }.flowOn(Dispatchers.Default)
 }
