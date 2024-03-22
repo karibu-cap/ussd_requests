@@ -336,12 +336,16 @@ object USSDController : USSDInterface, USSDApi {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
         accessibilityManager?.apply {
             installedAccessibilityServiceList.forEach { service ->
+                Log.d("Accessibility", "1")
                 if (service.id.contains(context.packageName) &&
                     Settings.Secure.getInt(context.applicationContext.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED) == 1) {
+                    Log.d("Accessibility", "2")
                     val enabledServices = Settings.Secure.getString(context.applicationContext.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
                     if (enabledServices != null) {
                         val enabledServicesList = enabledServices.split(':')
+                        Log.d("Accessibility", "3")
                         if (enabledServicesList.any { enabledService -> enabledService.contains(service.id) }) {
+                            Log.d("Accessibility", "4")
                             emit(true)
                             return@flow
                         }
@@ -349,6 +353,7 @@ object USSDController : USSDInterface, USSDApi {
                 }
             }
         }
+        Log.d("Accessibility", "5")
         emit(false)
     }.flowOn(Dispatchers.Default)
 }
