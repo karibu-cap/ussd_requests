@@ -16,6 +16,7 @@ import android.app.AlertDialog
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
@@ -37,7 +38,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.withContext
+import android.content.pm.ApplicationInfo
+import java.util.concurrent.CompletableFuture
 
 
 /**
@@ -363,4 +365,30 @@ object USSDController : USSDInterface, USSDApi {
             contentResolver.unregisterContentObserver(observer)
         }
     }.flowOn(Dispatchers.Default)
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo> {
+        val packageManager: PackageManager = context.packageManager
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: ""
+
+        val enabledPackages = enabledServices.split(":")
+
+        val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+
+        return applications.filter { app ->
+            enabledPackages.any { packageName ->
+                app.packageName.contains(packageName)
+            }
+        }.map { app ->
+            val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
+            CustomAppInfo(
+                packageName = app.packageName,
+                applicationName = packageManager.getApplicationLabel(app).toString(),
+                buildNumber = packageInfo.versionName
+            )
+        }
+    }
 }

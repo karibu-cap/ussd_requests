@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'models/custom_app_info.dart';
 import 'models/ussd_single_session_response.dart';
 import 'ussd_requests_method_channel.dart';
 
@@ -52,5 +53,10 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
 
   Stream<bool> get streamAccessibilityServiceEnabled {
     return Stream.value(false);
+  }
+
+  Future<CustomAppInfo?> getEnabledAccessibilityApps() {
+    throw UnimplementedError(
+        'getEnabledAccessibilityApps() has not been implemented.');
   }
 }

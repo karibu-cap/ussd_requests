@@ -11,8 +11,10 @@
 package com.karibu_cap.ussd_requests
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import java.util.*
 import kotlinx.coroutines.flow.Flow
+import java.util.concurrent.CompletableFuture
 
 /**
  *
@@ -42,4 +44,5 @@ interface USSDApi {
     fun verifyOverLay(context: Context): Boolean
     fun isAccessibilityServicesEnabled(context: Context): Boolean
     fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean>
+    fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo>
 }
