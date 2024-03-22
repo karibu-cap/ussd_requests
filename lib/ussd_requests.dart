@@ -29,7 +29,7 @@ class UssdRequests {
   }
 
   static Future<bool> isAccessibilityServicesEnable() async {
-    return await UssdRequestsPlatform.instance.isAccessibilityServicesEnable();
+    return await UssdRequestsPlatform.instance.isAccessibilityServicesEnabled();
   }
 
   static Stream<bool> get streamAccessibilityServiceEnabled =>

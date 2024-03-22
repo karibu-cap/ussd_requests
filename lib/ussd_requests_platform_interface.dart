@@ -46,7 +46,7 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
         'multipleSessionBackgroundUssdRequest() has not been implemented.');
   }
 
-  Future<bool> isAccessibilityServicesEnable() async {
+  Future<bool> isAccessibilityServicesEnabled() async {
     return false;
   }
 
