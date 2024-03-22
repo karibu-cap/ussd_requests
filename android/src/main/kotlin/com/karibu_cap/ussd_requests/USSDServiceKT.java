@@ -27,6 +27,8 @@ import java.util.List;
  */
 public class USSDServiceKT extends AccessibilityService {
 
+    String logTag = "karibu.ussd_requests ";
+
     private static AccessibilityEvent event;
 
     /**
@@ -218,6 +220,7 @@ public class USSDServiceKT extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        Log.d("onServiceConnected","onServiceConnected");
+        String logMessage = "onServiceConnected [$applicationId]: onServiceConnected";
+        Log.i(logTag, logMessage);
     }
 }

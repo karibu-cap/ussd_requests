@@ -74,18 +74,19 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
 
   override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
     eventSink = events
-    val scope = CoroutineScope(Dispatchers.Main)
 
-    scope.launch {
+    val listenerScope = CoroutineScope(Dispatchers.Main)
+
+    val applicationId = context?.packageName ?: ""
+
+    val listenerJob = listenerScope.launch {
       ussdApi.isAccessibilityServicesEnabledStream(context!!).collect { isEnabled: Boolean ->
         // Handle each emitted value here
-        Log.i(logTag, "isAccessibilityServicesEnableStream: $isEnabled")
+        val logMessage = "isAccessibilityServicesEnableStream [$applicationId]: $isEnabled"
+        Log.i(logTag, logMessage)
         eventSink?.success(isEnabled)
       }
     }
-
-    // Optionally, you can cancel the coroutine scope when it's no longer needed
-    // scope.cancel()
   }
 
   override fun onCancel(arguments: Any?) {

@@ -13,10 +13,14 @@ package com.karibu_cap.ussd_requests
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
@@ -25,6 +29,7 @@ import androidx.annotation.RequiresApi
 import java.util.stream.Stream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -32,6 +37,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.withContext
+
 
 /**
  * @author Romell Dominguez
@@ -41,6 +48,7 @@ import kotlinx.coroutines.channels.awaitClose
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
+    private val accessibilityStatusChannels = mutableMapOf<String, Channel<Boolean>>()
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -328,25 +336,31 @@ object USSDController : USSDInterface, USSDApi {
     }
     @RequiresApi(Build.VERSION_CODES.N)
     override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
-        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
-    
-        val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
-            trySend(enabled).isSuccess
+        val contentResolver: ContentResolver = context.contentResolver
+        val packageName: String = context.packageName
+
+        val accessibilitySettingsUri: Uri = Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                val enabledPackages = enabled?.split(":") ?: emptyList()
+                val isPackageEnabled = enabledPackages.any { it.contains(packageName) }
+                trySend(isPackageEnabled).isSuccess
+            }
         }
-    
-        // Register the listener
-        accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
-    
+
+        // Register the observer on the main thread
+        contentResolver.registerContentObserver(accessibilitySettingsUri, true, observer)
+
         // Emit the initial value
-        accessibilityManager?.let {
-            val enabled = it.isEnabled
-            trySend(enabled).isSuccess
-        }
-    
+        val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val enabledPackages = enabled?.split(":") ?: emptyList()
+        val isPackageEnabled = enabledPackages.any { it.contains(packageName) }
+        trySend(isPackageEnabled).isSuccess
+
         awaitClose {
-            // Remove the listener when the flow is canceled
-            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
+            // Unregister the observer
+            contentResolver.unregisterContentObserver(observer)
         }
-    }
-        .flowOn(Dispatchers.Default)
+    }.flowOn(Dispatchers.Default)
 }
