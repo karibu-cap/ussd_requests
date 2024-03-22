@@ -332,26 +332,23 @@ object USSDController : USSDInterface, USSDApi {
         return false
     }
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
+    override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = flow {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        accessibilityManager?.apply {
+            val packageName = context.packageName
+            val enabledServices = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            val accessibilityEnabled = Settings.Secure.getInt(context.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
 
-        val accessibilityStateChangeListener = AccessibilityManager.AccessibilityStateChangeListener { enabled ->
-            trySend(enabled).isSuccess
+            if (enabledServices?.contains(packageName) == true && accessibilityEnabled == 1) {
+                val enabledServicesList = enabledServices.split(':')
+                installedAccessibilityServiceList.forEach { service ->
+                    if (enabledServicesList.any { enabledService -> enabledService.contains(service.id) }) {
+                        emit(true)
+                        return@flow
+                    }
+                }
+            }
         }
-
-        // Register the listener
-        accessibilityManager?.addAccessibilityStateChangeListener(accessibilityStateChangeListener)
-
-        // Emit the initial value
-        accessibilityManager?.let {
-            val enabled = it.isEnabled
-            trySend(enabled).isSuccess
-        }
-
-        awaitClose {
-            // Remove the listener when the flow is canceled
-            accessibilityManager?.removeAccessibilityStateChangeListener(accessibilityStateChangeListener)
-        }
+        emit(false)
     }
-        .flowOn(Dispatchers.Default)
 }
