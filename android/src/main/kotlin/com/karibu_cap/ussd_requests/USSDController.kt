@@ -337,12 +337,15 @@ object USSDController : USSDInterface, USSDApi {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean> = callbackFlow {
         val contentResolver: ContentResolver = context.contentResolver
+        val packageName: String = context.packageName
 
-        val accessibilitySettingsUri: Uri = Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED)
+        val accessibilitySettingsUri: Uri = Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
         val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
-                val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
-                trySend(enabled).isSuccess
+                val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                val enabledPackages = enabled?.split(":") ?: emptyList()
+                val isPackageEnabled = enabledPackages.any { it.contains(packageName) }
+                trySend(isPackageEnabled).isSuccess
             }
         }
 
@@ -350,8 +353,10 @@ object USSDController : USSDInterface, USSDApi {
         contentResolver.registerContentObserver(accessibilitySettingsUri, true, observer)
 
         // Emit the initial value
-        val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0) == 1
-        trySend(enabled).isSuccess
+        val enabled = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+        val enabledPackages = enabled?.split(":") ?: emptyList()
+        val isPackageEnabled = enabledPackages.any { it.contains(packageName) }
+        trySend(isPackageEnabled).isSuccess
 
         awaitClose {
             // Unregister the observer
