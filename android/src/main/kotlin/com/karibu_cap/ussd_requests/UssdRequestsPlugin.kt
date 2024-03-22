@@ -44,7 +44,7 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
   private var channelName: String = "com.karibu_cap.ussd_requests/plugin_channel"
   private val singleSessionBackgroundUssdRequestName = "singleSessionBackgroundUssdRequest"
   private val multipleSessionBackgroundUssdRequestName = "multipleSessionBackgroundUssdRequest"
-  private val isAccessibilityServicesEnableRequestName = "isAccessibilityServicesEnableRequest"
+  private val isAccessibilityServicesEnabledRequestName = "isAccessibilityServicesEnabledRequest"
   private var context: Context? = null
   private var activity: Activity? = null
   private var methodChannel: MethodChannel? = null
@@ -171,16 +171,16 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
         result.error("unknown_exception", e.message, null)
       }
     }
-    if (call.method == isAccessibilityServicesEnableRequestName) {
+    if (call.method == isAccessibilityServicesEnabledRequestName) {
       try {
           result.success(
-            this.ussdApi.isAccessibilityServicesEnable(context!!)
+            this.ussdApi.isAccessibilityServicesEnabled(context!!)
           )
       } catch (e: Exception) {
         result.error(RequestParamsException.type, e.message, null)
       }
     }
-    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnableRequestName) {
+    if (call.method != singleSessionBackgroundUssdRequestName && call.method != multipleSessionBackgroundUssdRequestName && call.method != isAccessibilityServicesEnabledRequestName) {
       result.notImplemented()
     }
   }

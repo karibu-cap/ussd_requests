@@ -40,6 +40,6 @@ interface USSDApi {
                               callbackInvoke: USSDController.CallbackInvoke)
     fun verifyAccessibilityAccess(context: Context): Boolean
     fun verifyOverLay(context: Context): Boolean
-    fun isAccessibilityServicesEnable(context: Context): Boolean
+    fun isAccessibilityServicesEnabled(context: Context): Boolean
     fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean>
 }

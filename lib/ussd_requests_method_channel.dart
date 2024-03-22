@@ -86,10 +86,10 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }
 
   @override
-  Future<bool> isAccessibilityServicesEnable() async {
+  Future<bool> isAccessibilityServicesEnabled() async {
     try {
       return await methodChannel
-          .invokeMethod('isAccessibilityServicesEnableRequest');
+          .invokeMethod('isAccessibilityServicesEnabledRequest');
     } on PlatformException catch (e) {
       if (kDebugMode) {
         print('Failed to invoke Kotlin method: ${e.message}');

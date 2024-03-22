@@ -277,7 +277,7 @@ object USSDController : USSDInterface, USSDApi {
      * @return The enable value of the accessibility
      */
     override fun verifyAccessibilityAccess(context: Context): Boolean =
-            isAccessibilityServicesEnable(context).also {
+            isAccessibilityServicesEnabled(context).also {
                 if (!it) openSettingsAccessibility(context as Activity)
             }
 
@@ -312,7 +312,7 @@ object USSDController : USSDInterface, USSDApi {
         activity.startActivityForResult(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), 1)
     }
 
-    override fun isAccessibilityServicesEnable(context: Context): Boolean {
+    override fun isAccessibilityServicesEnabled(context: Context): Boolean {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
         accessibilityManager?.apply {
             installedAccessibilityServiceList.forEach { service ->
