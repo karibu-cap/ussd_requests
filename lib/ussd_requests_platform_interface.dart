@@ -55,7 +55,7 @@ abstract class UssdRequestsPlatform extends PlatformInterface {
     return Stream.value(false);
   }
 
-  Future<CustomAppInfo?> getEnabledAccessibilityApps() {
+  Future<List<CustomAppInfo>?> getEnabledAccessibilityApps() {
     throw UnimplementedError(
         'getEnabledAccessibilityApps() has not been implemented.');
   }

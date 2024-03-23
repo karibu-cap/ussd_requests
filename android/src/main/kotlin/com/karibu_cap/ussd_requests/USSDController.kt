@@ -38,8 +38,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import android.content.pm.ApplicationInfo
-import java.util.concurrent.CompletableFuture
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.pm.ResolveInfo
 
 
 /**
@@ -367,28 +367,36 @@ object USSDController : USSDInterface, USSDApi {
     }.flowOn(Dispatchers.Default)
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo> {
+    override fun getEnabledAccessibilityApps(context: Context): List<HashMap<String, String>> {
         val packageManager: PackageManager = context.packageManager
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: ""
+        val accessibilityManager: AccessibilityManager =
+            context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        val enabledPackages = enabledServices.split(":")
+        val enabledPackages = mutableListOf<String>()
+
+        val enabledServices: List<AccessibilityServiceInfo> =
+            accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+
+        enabledServices.forEach { serviceInfo ->
+            val packageName: String = serviceInfo.packageNames.firstOrNull() ?: ""
+            enabledPackages.add(packageName)
+        }
 
         val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
         return applications.filter { app ->
             enabledPackages.any { packageName ->
-                app.packageName.contains(packageName)
+                app.packageName == packageName
             }
         }.map { app ->
             val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
-            CustomAppInfo(
-                packageName = app.packageName,
-                applicationName = packageManager.getApplicationLabel(app).toString(),
-                buildNumber = packageInfo.versionName
-            )
+            val response = HashMap<String, String>()
+            response.apply {
+                put("packageName", app.packageName)
+                put("applicationName", packageManager.getApplicationLabel(app).toString())
+                put("buildNumber", packageInfo.versionName)
+            }
+            response
         }
     }
 }
