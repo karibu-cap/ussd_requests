@@ -19,10 +19,10 @@ class CustomAppInfo {
   final String buildNumber;
 
   /// Constructs a new [CustomAppInfo] from [Map] object.
-  CustomAppInfo.fromJson({required Map<String, dynamic> json})
-      : packageName = json[keyPackageName],
-        applicationName = json[keyApplicationName],
-        buildNumber = json[keyBuildNumber];
+  CustomAppInfo.fromJson(Map<String, dynamic> json)
+    : packageName = json[CustomAppInfo.keyPackageName],
+      applicationName = json[CustomAppInfo.keyApplicationName],
+      buildNumber = json[CustomAppInfo.keyBuildNumber];
 
   /// Constructs a new [Map] object from [CustomAppInfo].
   Map<String, dynamic> toJson() => {
