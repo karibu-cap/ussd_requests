@@ -116,11 +116,9 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
     try {
       final result = await methodChannel
           .invokeMethod('getEnabledAccessibilityAppsRequest') as List<dynamic>;
-      print('getEnabledAccessibilityAppsRequest: $result');
-      final results = result
-          .map((element) =>
-              CustomAppInfo.fromJson(Map<String, dynamic>.from(element)))
-          .toList();
+    print('getEnabledAccessibilityAppsRequest getEnabledAccessibilityAppsRequest: $result');
+      final results = List<CustomAppInfo>.from(result.map((element) =>
+          CustomAppInfo.fromJson(json: Map<String, dynamic>.from(element))));
       return results;
     } on PlatformException catch (e) {
       if (kDebugMode) {

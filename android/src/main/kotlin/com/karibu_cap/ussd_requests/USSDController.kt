@@ -367,7 +367,7 @@ object USSDController : USSDInterface, USSDApi {
     }.flowOn(Dispatchers.Default)
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo> {
+    override fun getEnabledAccessibilityApps(context: Context): List<Map<String, Any>> {
         val packageManager: PackageManager = context.packageManager
         val accessibilityManager: AccessibilityManager =
             context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
@@ -390,10 +390,10 @@ object USSDController : USSDInterface, USSDApi {
             }
         }.map { app ->
             val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
-            CustomAppInfo(
-                packageName = app.packageName,
-                applicationName = packageManager.getApplicationLabel(app).toString(),
-                buildNumber = packageInfo.versionName
+            mapOf(
+                "packageName" to app.packageName,
+                "applicationName" to packageManager.getApplicationLabel(app).toString(),
+                "buildNumber" to packageInfo.versionName
             )
         }
     }
