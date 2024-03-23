@@ -116,6 +116,8 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
     try {
       final result = await methodChannel
           .invokeMethod('getEnabledAccessibilityAppsRequest') as List<dynamic>;
+      print(
+          'getEnabledAccessibilityAppsRequest getEnabledAccessibilityAppsRequest: $result');
       final results = List<CustomAppInfo>.from(result.map((element) =>
           CustomAppInfo.fromJson(json: Map<String, dynamic>.from(element))));
       return results;

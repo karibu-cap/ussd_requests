@@ -38,8 +38,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import android.content.pm.ApplicationInfo
-import java.util.concurrent.CompletableFuture
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.pm.ResolveInfo
 
 
 /**
@@ -369,12 +369,18 @@ object USSDController : USSDInterface, USSDApi {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo> {
         val packageManager: PackageManager = context.packageManager
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: ""
+        val accessibilityManager: AccessibilityManager =
+            context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        val enabledPackages = enabledServices.split(":")
+        val enabledPackages = mutableListOf<String>()
+
+        val enabledServices: List<AccessibilityServiceInfo> =
+            accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+
+        enabledServices.forEach { serviceInfo ->
+            val packageName: String = serviceInfo.packageNames.firstOrNull() ?: ""
+            enabledPackages.add(packageName)
+        }
 
         val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
