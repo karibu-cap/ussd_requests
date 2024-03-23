@@ -380,7 +380,7 @@ object USSDController : USSDInterface, USSDApi {
 
         return applications.filter { app ->
             enabledPackages.any { packageName ->
-                app.packageName.contains(packageName)
+                app.packageName == packageName
             }
         }.map { app ->
             val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
