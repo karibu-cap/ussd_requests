@@ -372,22 +372,17 @@ object USSDController : USSDInterface, USSDApi {
         val accessibilityManager: AccessibilityManager =
             context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        val enabledPackages = mutableListOf<String>()
-
         val enabledServices: List<AccessibilityServiceInfo> =
             accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
 
-        enabledServices.forEach { serviceInfo ->
-            val packageName: String = serviceInfo.packageNames.firstOrNull() ?: ""
-            enabledPackages.add(packageName)
+        val enabledPackageNames = enabledServices.flatMap { serviceInfo ->
+            serviceInfo.packageNames.toList()
         }
 
         val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
         return applications.filter { app ->
-            enabledPackages.any { packageName ->
-                app.packageName == packageName
-            }
+            enabledPackageNames.contains(app.packageName)
         }.map { app ->
             val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
             val response = HashMap<String, String>()
