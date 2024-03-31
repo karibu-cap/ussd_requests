@@ -23,6 +23,7 @@ allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdkVersion 31
@@ -43,4 +44,8 @@ android {
     defaultConfig {
         minSdkVersion 16
     }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:+'
 }
