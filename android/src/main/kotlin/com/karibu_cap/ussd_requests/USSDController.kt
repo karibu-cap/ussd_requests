@@ -375,9 +375,14 @@ object USSDController : USSDInterface, USSDApi {
         val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
         return applications.filter { app ->
+            val packageName = app.packageName
             val accessibilityServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
             accessibilityServices.any { serviceInfo ->
-                serviceInfo.packageNames.contains(app.packageName)
+                val settings = Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                )
+                settings?.contains(serviceInfo.id) ?: false && serviceInfo.packageNames.contains(packageName)
             }
         }.map { app ->
             val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
