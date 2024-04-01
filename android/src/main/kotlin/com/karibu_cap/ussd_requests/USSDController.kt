@@ -51,7 +51,7 @@ import android.content.pm.ResolveInfo
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<String, Channel<Boolean>>()
+    val logTag = "karibu.ussd_requests "
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -391,6 +391,7 @@ object USSDController : USSDInterface, USSDApi {
                         put("applicationName", packageManager.getApplicationLabel(appInfo).toString())
                         put("buildNumber", packageInfo.versionName)
                     }
+                    Log.i(logTag, "getEnabledAccessibilityApps response: $response")
                     enabledApps.add(response)
                 }
             }
