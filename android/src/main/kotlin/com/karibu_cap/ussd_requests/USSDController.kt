@@ -383,6 +383,7 @@ object USSDController : USSDInterface, USSDApi {
         enabledServices?.split(":")?.forEach { service ->
             val componentName = ComponentName.unflattenFromString(service)
             componentName?.let { cn ->
+                Log.i(logTag, "getEnabledAccessibilityApps initiate get of packageInfo")
                 val packageInfo = packageManager.getPackageInfo(cn.packageName, 0)
                 Log.i(logTag, "getEnabledAccessibilityApps packageInfo: $packageInfo")
                 if (cn.packageName != packageName) {
