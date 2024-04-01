@@ -385,21 +385,24 @@ object USSDController : USSDInterface, USSDApi {
             val componentName = ComponentName.unflattenFromString(service)
             Log.i(logTag, "getEnabledAccessibilityApps componentName : $componentName")
             componentName?.let { cn ->
-                Log.i(logTag, "getEnabledAccessibilityApps initiate get of packageInfo")
+                Log.i(logTag, "getEnabledAccessibilityApps initiate get of applicationInfo")
                 Log.i(logTag, "getEnabledAccessibilityApps cn : $cn")
-                val packageInfo = packageManager.getApplicationInfo(cn.packageName, 0)
-                Log.i(logTag, "getEnabledAccessibilityApps packageInfo: $packageInfo")
                 if (cn.packageName != packageName) {
-                    val appInfo = packageManager.getApplicationInfo(cn.packageName, 0)
-                    val response = HashMap<String, String>()
-                    Log.i(logTag, "getEnabledAccessibilityApps appInfo: $appInfo")
-                    response.apply {
-                        put("packageName", appInfo.packageName)
-                        put("applicationName", packageManager.getApplicationLabel(appInfo).toString())
-                        put("buildNumber", packageManager.getPackageInfo(packageName, 0).versionName)
+                    val installedApplications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+                    val appInfo = installedApplications.find {
+                        it.packageName == cn.packageName
                     }
-                    Log.i(logTag, "getEnabledAccessibilityApps response: $response")
-                    enabledApps.add(response)
+                    appInfo?.let {
+                        val response = HashMap<String, String>()
+                        Log.i(logTag, "getEnabledAccessibilityApps appInfo: $appInfo")
+                        response.apply {
+                            put("packageName", appInfo.packageName)
+                            put("applicationName", packageManager.getApplicationLabel(appInfo).toString())
+                            put("buildNumber", packageManager.getPackageInfo(appInfo.packageName, 0).versionName)
+                        }
+                        Log.i(logTag, "getEnabledAccessibilityApps response: $response")
+                        enabledApps.add(response)
+                    }
                 } else {
                     Log.i(logTag, "getEnabledAccessibilityApps packageName = packageName")
                 }
