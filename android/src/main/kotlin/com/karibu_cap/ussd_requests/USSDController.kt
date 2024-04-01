@@ -396,7 +396,7 @@ object USSDController : USSDInterface, USSDApi {
                     }
                     Log.i(logTag, "getEnabledAccessibilityApps response: $response")
                     enabledApps.add(response)
-                }else{
+                } else {
                     Log.i(logTag, "getEnabledAccessibilityApps packageName = packageName")
                 }
             }
