@@ -386,7 +386,8 @@ object USSDController : USSDInterface, USSDApi {
             Log.i(logTag, "getEnabledAccessibilityApps componentName : $componentName")
             componentName?.let { cn ->
                 Log.i(logTag, "getEnabledAccessibilityApps initiate get of packageInfo")
-                val packageInfo = packageManager.getPackageInfo(cn.packageName, 0)
+                Log.i(logTag, "getEnabledAccessibilityApps cn : $cn")
+                val packageInfo = packageManager.getApplicationInfo(cn.packageName, 0)
                 Log.i(logTag, "getEnabledAccessibilityApps packageInfo: $packageInfo")
                 if (cn.packageName != packageName) {
                     val appInfo = packageManager.getApplicationInfo(cn.packageName, 0)
@@ -395,7 +396,7 @@ object USSDController : USSDInterface, USSDApi {
                     response.apply {
                         put("packageName", appInfo.packageName)
                         put("applicationName", packageManager.getApplicationLabel(appInfo).toString())
-                        put("buildNumber", packageInfo.versionName)
+                        put("buildNumber", packageManager.getPackageInfo(packageName, 0).versionName)
                     }
                     Log.i(logTag, "getEnabledAccessibilityApps response: $response")
                     enabledApps.add(response)
