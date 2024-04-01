@@ -367,27 +367,28 @@ object USSDController : USSDInterface, USSDApi {
     }.flowOn(Dispatchers.Default)
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun getEnabledAccessibilityApps(context: Context): List<HashMap<String, String>> {
+    override suspend fun getEnabledAccessibilityApps(context: Context): List<HashMap<String, String>> {
         val packageManager: PackageManager = context.packageManager
-        val accessibilityManager: AccessibilityManager =
-            context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        val enabledApps = mutableListOf<HashMap<String, String>>()
 
-        return applications.filter { app ->
-            val accessibilityServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            accessibilityServices.any { serviceInfo ->
-                serviceInfo.packageNames.contains(app.packageName)
+        isAccessibilityServicesEnabledStream(context).collect { isPackageEnabled ->
+            if (isPackageEnabled) {
+                val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+
+                applications.forEach { app ->
+                    val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
+                    val response = HashMap<String, String>()
+                    response.apply {
+                        put("packageName", app.packageName)
+                        put("applicationName", packageManager.getApplicationLabel(app).toString())
+                        put("buildNumber", packageInfo.versionName)
+                    }
+                    enabledApps.add(response)
+                }
             }
-        }.map { app ->
-            val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
-            val response = HashMap<String, String>()
-            response.apply {
-                put("packageName", app.packageName)
-                put("applicationName", packageManager.getApplicationLabel(app).toString())
-                put("buildNumber", packageInfo.versionName)
-            }
-            response
         }
+
+        return enabledApps
     }
 }
