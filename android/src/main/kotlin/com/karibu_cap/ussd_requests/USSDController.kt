@@ -389,9 +389,11 @@ object USSDController : USSDInterface, USSDApi {
                 Log.i(logTag, "getEnabledAccessibilityApps cn : $cn")
                 if (cn.packageName != packageName) {
                     val installedApplications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+                    Log.i(logTag, "getEnabledAccessibilityApps installedApplications : $installedApplications")
                     val appInfo = installedApplications.find {
                         it.packageName == cn.packageName
                     }
+                    Log.i(logTag, "getEnabledAccessibilityApps appInfo : $appInfo")
                     appInfo?.let {
                         val response = HashMap<String, String>()
                         Log.i(logTag, "getEnabledAccessibilityApps appInfo: $appInfo")
