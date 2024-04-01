@@ -379,13 +379,16 @@ object USSDController : USSDInterface, USSDApi {
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         )
 
+        Log.i(logTag, "getEnabledAccessibilityApps enabledServices: $enabledServices")
         enabledServices?.split(":")?.forEach { service ->
             val componentName = ComponentName.unflattenFromString(service)
             componentName?.let { cn ->
                 val packageInfo = packageManager.getPackageInfo(cn.packageName, 0)
+                Log.i(logTag, "getEnabledAccessibilityApps packageInfo: $packageInfo")
                 if (cn.packageName != packageName) {
                     val appInfo = packageManager.getApplicationInfo(cn.packageName, 0)
                     val response = HashMap<String, String>()
+                    Log.i(logTag, "getEnabledAccessibilityApps appInfo: $appInfo")
                     response.apply {
                         put("packageName", appInfo.packageName)
                         put("applicationName", packageManager.getApplicationLabel(appInfo).toString())
@@ -393,6 +396,8 @@ object USSDController : USSDInterface, USSDApi {
                     }
                     Log.i(logTag, "getEnabledAccessibilityApps response: $response")
                     enabledApps.add(response)
+                }else{
+                    Log.i(logTag, "getEnabledAccessibilityApps packageName = packageName")
                 }
             }
         }
