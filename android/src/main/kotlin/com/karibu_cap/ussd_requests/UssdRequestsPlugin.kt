@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 /** UssdRequestsPlugin */
 class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, BroadcastReceiver(), ActivityAware  {
@@ -186,12 +185,9 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     }
     if (call.method == getEnabledAccessibilityAppsRequestName) {
       try {
-        runBlocking {
-          var ussdApi : USSDApi = USSDController
           result.success(
-            ussdApi.getEnabledAccessibilityApps(context!!)
+            this.ussdApi.getEnabledAccessibilityApps(context!!)
           )
-        }
       } catch (e: Exception) {
         result.error(RequestParamsException.type, e.message, null)
       }
