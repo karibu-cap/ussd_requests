@@ -369,16 +369,11 @@ object USSDController : USSDInterface, USSDApi {
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun getEnabledAccessibilityApps(context: Context): Array<String> {
-        val packageManager: PackageManager = context.packageManager
-        val packageName: String = context.packageName
-
-        val enabledApps = mutableListOf<HashMap<String, String>>()
-
         val enabledServices = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         )
-        val result: Array<String> = arrayOf()
+        val result: ArrayList<String> = ArrayList()
 
         Log.i(logTag, "getEnabledAccessibilityApps enabledServices: $enabledServices")
         enabledServices?.split(":")?.forEach { service ->
@@ -387,12 +382,11 @@ object USSDController : USSDInterface, USSDApi {
             Log.i(logTag, "getEnabledAccessibilityApps componentName : $componentName")
 
             componentName?.let { cn ->
-                Log.i(logTag, "getEnabledAccessibilityApps initiate get of applicationInfo")
-                Log.i(logTag, "getEnabledAccessibilityApps cn : $cn")
-                result.plusElement(cn.packageName)
+                Log.i(logTag, "getEnabledAccessibilityApps packageName : ${cn.packageName}")
+                result.add(cn.packageName)
             }
         }
 
-        return result
+        return result.toTypedArray()
     }
 }
