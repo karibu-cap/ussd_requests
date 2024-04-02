@@ -185,8 +185,10 @@ class UssdRequestsPlugin: FlutterPlugin, MethodCallHandler, EventChannel.StreamH
     }
     if (call.method == getEnabledAccessibilityAppsRequestName) {
       try {
+        var getEnabledAccessibilityApps = this.ussdApi.getEnabledAccessibilityApps(context!!)
+        Log.i(logTag, "getEnabledAccessibilityApps: $getEnabledAccessibilityApps")
           result.success(
-            this.ussdApi.getEnabledAccessibilityApps(context!!)
+            getEnabledAccessibilityApps
           )
       } catch (e: Exception) {
         result.error(RequestParamsException.type, e.message, null)

@@ -112,11 +112,12 @@ class MethodChannelUssdRequests extends UssdRequestsPlatform {
   }
 
   @override
-  Future<CustomAppInfo?> getEnabledAccessibilityApps() async {
+  Future<List<String>?> getEnabledAccessibilityApps() async {
     try {
-      final result = await methodChannel
-          .invokeMethod('getEnabledAccessibilityAppsRequest');
-      return CustomAppInfo.fromJson(json: Map<String, dynamic>.from(result));
+      return (await methodChannel.invokeMethod(
+              'getEnabledAccessibilityAppsRequest') as List<dynamic>)
+          .map((item) => item.toString())
+          .toList();
     } on PlatformException catch (e) {
       if (kDebugMode) {
         print('Failed to invoke Kotlin method: ${e.message}');

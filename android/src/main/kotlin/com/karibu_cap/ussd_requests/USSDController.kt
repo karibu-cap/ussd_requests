@@ -38,8 +38,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import android.content.pm.ApplicationInfo
-import java.util.concurrent.CompletableFuture
+import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.ComponentName
+import android.content.pm.ResolveInfo
 
 
 /**
@@ -50,7 +51,7 @@ import java.util.concurrent.CompletableFuture
 @SuppressLint("StaticFieldLeak")
 object USSDController : USSDInterface, USSDApi {
 
-    private val accessibilityStatusChannels = mutableMapOf<String, Channel<Boolean>>()
+    val logTag = "karibu.ussd_requests "
     internal const val KEY_LOGIN = "KEY_LOGIN"
     internal const val KEY_ERROR = "KEY_ERROR"
 
@@ -367,28 +368,25 @@ object USSDController : USSDInterface, USSDApi {
     }.flowOn(Dispatchers.Default)
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun getEnabledAccessibilityApps(context: Context): List<CustomAppInfo> {
-        val packageManager: PackageManager = context.packageManager
+    override fun getEnabledAccessibilityApps(context: Context): List<String> {
         val enabledServices = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: ""
+        )
+        val result: ArrayList<String> = ArrayList()
 
-        val enabledPackages = enabledServices.split(":")
+        Log.i(logTag, "getEnabledAccessibilityApps enabledServices: $enabledServices")
+        enabledServices?.split(":")?.forEach { service ->
+            Log.i(logTag, "getEnabledAccessibilityApps service : $service")
+            val componentName = ComponentName.unflattenFromString(service)
+            Log.i(logTag, "getEnabledAccessibilityApps componentName : $componentName")
 
-        val applications = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-
-        return applications.filter { app ->
-            enabledPackages.any { packageName ->
-                app.packageName.contains(packageName)
+            componentName?.let { cn ->
+                Log.i(logTag, "getEnabledAccessibilityApps packageName : ${cn.packageName}")
+                result.add(cn.packageName)
             }
-        }.map { app ->
-            val packageInfo = packageManager.getPackageInfo(app.packageName, 0)
-            CustomAppInfo(
-                packageName = app.packageName,
-                applicationName = packageManager.getApplicationLabel(app).toString(),
-                buildNumber = packageInfo.versionName
-            )
         }
+
+        return result
     }
 }

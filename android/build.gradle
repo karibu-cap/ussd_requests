@@ -2,7 +2,7 @@ group 'com.karibu_cap.ussd_requests'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.9.23'
     repositories {
         google()
         mavenCentral()
@@ -23,6 +23,7 @@ allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     compileSdkVersion 31
@@ -43,4 +44,8 @@ android {
     defaultConfig {
         minSdkVersion 16
     }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:+'
 }
