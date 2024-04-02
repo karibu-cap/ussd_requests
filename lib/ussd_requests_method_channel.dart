@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'models/custom_app_info.dart';
 import 'models/ussd_single_session_response.dart';
 import 'ussd_requests_platform_interface.dart';
 
