@@ -16,7 +16,6 @@ import android.app.AlertDialog
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
@@ -27,20 +26,12 @@ import android.telecom.TelecomManager
 import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
-import java.util.stream.Stream
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.channels.awaitClose
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ComponentName
-import android.content.pm.ResolveInfo
 
 
 /**
