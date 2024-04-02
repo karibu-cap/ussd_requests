@@ -368,7 +368,7 @@ object USSDController : USSDInterface, USSDApi {
     }.flowOn(Dispatchers.Default)
 
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun getEnabledAccessibilityApps(context: Context): Array<String> {
+    override fun getEnabledAccessibilityApps(context: Context): List<String> {
         val enabledServices = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
@@ -387,6 +387,6 @@ object USSDController : USSDInterface, USSDApi {
             }
         }
 
-        return result.toTypedArray()
+        return result
     }
 }

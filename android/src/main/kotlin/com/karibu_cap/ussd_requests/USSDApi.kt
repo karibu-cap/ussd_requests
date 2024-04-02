@@ -44,5 +44,5 @@ interface USSDApi {
     fun verifyOverLay(context: Context): Boolean
     fun isAccessibilityServicesEnabled(context: Context): Boolean
     fun isAccessibilityServicesEnabledStream(context: Context): Flow<Boolean>
-    fun getEnabledAccessibilityApps(context: Context): Array<String>
+    fun getEnabledAccessibilityApps(context: Context): List<String>
 }
