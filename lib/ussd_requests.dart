@@ -33,7 +33,7 @@ class UssdRequests {
     return await UssdRequestsPlatform.instance.isAccessibilityServicesEnabled();
   }
 
-  static Future<List<CustomAppInfo>?> getEnabledAccessibilityApps() async {
+  static Future<List<String>?> getEnabledAccessibilityApps() async {
     return await UssdRequestsPlatform.instance.getEnabledAccessibilityApps();
   }
 
